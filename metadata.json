@@ -1,0 +1,6 @@
+{
+  "name": "Cocktail Randomizer",
+  "description": "Mobile-first cocktail generator per serate tra amici - scopri cosa bere stasera!",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
