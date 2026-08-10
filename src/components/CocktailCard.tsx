@@ -69,9 +69,9 @@ export const CocktailCard: React.FC<CocktailCardProps> = ({
       initial={{ opacity: 0, y: 20, scale: 0.96 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.4, ease: 'easeOut' }}
-      className="w-full max-w-md mx-auto px-4 my-3"
+      className="w-full max-w-md mx-auto px-1 my-1"
     >
-      <div className="glass-card rounded-3xl p-6 sm:p-7 border border-amber-500/20 shadow-2xl relative overflow-hidden">
+      <div className="glass-card rounded-3xl p-5 sm:p-6 border border-amber-500/20 shadow-2xl relative overflow-hidden">
         {/* Background Subtle Color Glow */}
         <div className="absolute top-0 right-0 w-36 h-36 bg-amber-500/10 rounded-full blur-3xl -z-10" />
         <div className="absolute bottom-0 left-0 w-36 h-36 bg-purple-500/10 rounded-full blur-3xl -z-10" />

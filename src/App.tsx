@@ -109,7 +109,7 @@ export default function App() {
   }, []);
 
   return (
-    <div className="min-h-screen min-h-[100dvh] flex flex-col bg-[#0b0b0e] text-slate-100 font-sans pb-12 selection:bg-amber-500 selection:text-black">
+    <div className="min-h-screen min-h-[100dvh] flex flex-col justify-between bg-[#0b0b0e] text-slate-100 font-sans selection:bg-amber-500 selection:text-black">
       {/* App Header */}
       <Header
         historyCount={history.length}
@@ -121,7 +121,7 @@ export default function App() {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 w-full max-w-lg mx-auto flex flex-col justify-between py-4">
+      <main className="flex-1 w-full max-w-md mx-auto flex flex-col justify-between py-2 px-3 sm:px-4">
         {/* Filter Bar */}
         <FilterBar
           activeFilter={activeFilter}
@@ -130,7 +130,7 @@ export default function App() {
         />
 
         {/* Center Display Area */}
-        <div className="flex-1 flex flex-col justify-center items-center py-2">
+        <div className="flex-1 flex flex-col justify-center items-center py-2 my-auto">
           {isShuffling ? (
             <ShuffleAnimation />
           ) : currentCocktail ? (
@@ -142,39 +142,39 @@ export default function App() {
             />
           ) : (
             /* Initial Hero Landing Banner before first click */
-            <div className="w-full max-w-md mx-auto px-6 py-8 text-center flex flex-col items-center my-auto">
+            <div className="w-full max-w-md mx-auto px-5 py-6 text-center flex flex-col items-center my-auto">
               {/* Glass / Cocktail Icon with Glowing Ring */}
-              <div className="relative mb-6">
+              <div className="relative mb-4">
                 <div className="absolute inset-0 bg-gradient-to-tr from-amber-500 to-orange-500 rounded-full blur-2xl opacity-30 animate-pulse-slow" />
-                <div className="relative w-24 h-24 rounded-3xl bg-gradient-to-b from-amber-500/20 to-black/60 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-2xl backdrop-blur-md">
-                  <GlassWater className="w-12 h-12" />
+                <div className="relative w-20 h-20 rounded-3xl bg-gradient-to-b from-amber-500/20 to-black/60 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-2xl backdrop-blur-md">
+                  <GlassWater className="w-10 h-10" />
                 </div>
               </div>
 
-              <span className="text-xs font-extrabold uppercase tracking-widest text-amber-400 bg-amber-500/10 px-3.5 py-1.5 rounded-full border border-amber-500/20 mb-3">
+              <span className="text-[11px] font-extrabold uppercase tracking-widest text-amber-400 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20 mb-2.5">
                 Nightlife Generator
               </span>
 
-              <h2 className="text-3xl sm:text-4xl font-extrabold font-syne text-white tracking-tight leading-tight mb-3">
+              <h2 className="text-2xl sm:text-3xl font-extrabold font-syne text-white tracking-tight leading-tight mb-2">
                 Cosa beviamo stasera?
               </h2>
 
-              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-xs mb-6">
+              <p className="text-xs text-slate-300 leading-relaxed max-w-xs mb-5">
                 Tocca il grande pulsante qui sotto per estrarre il cocktail perfetto per la tua serata tra amici.
               </p>
 
               {/* Quick stats highlight */}
-              <div className="grid grid-cols-3 gap-3 w-full max-w-xs bg-white/5 p-3 rounded-2xl border border-white/5 text-center">
+              <div className="grid grid-cols-3 gap-2.5 w-full max-w-xs bg-white/5 p-2.5 rounded-2xl border border-white/5 text-center">
                 <div>
-                  <span className="block text-base font-extrabold font-syne text-amber-400">{COCKTAILS_DATABASE.length}</span>
+                  <span className="block text-sm font-extrabold font-syne text-amber-400">{COCKTAILS_DATABASE.length}</span>
                   <span className="text-[10px] text-slate-400">Cocktail</span>
                 </div>
                 <div>
-                  <span className="block text-base font-extrabold font-syne text-amber-400">100%</span>
+                  <span className="block text-sm font-extrabold font-syne text-amber-400">100%</span>
                   <span className="text-[10px] text-slate-400">Casuale</span>
                 </div>
                 <div>
-                  <span className="block text-base font-extrabold font-syne text-amber-400">0</span>
+                  <span className="block text-sm font-extrabold font-syne text-amber-400">0</span>
                   <span className="text-[10px] text-slate-400">Attesa</span>
                 </div>
               </div>
@@ -183,7 +183,7 @@ export default function App() {
         </div>
 
         {/* Primary CTA Button Fixed in thumb reach zone */}
-        <div className="sticky bottom-3 z-30 pt-2">
+        <div className="sticky bottom-0 z-30 pt-1">
           <RandomizerButton
             onGenerate={handleGenerate}
             isShuffling={isShuffling}

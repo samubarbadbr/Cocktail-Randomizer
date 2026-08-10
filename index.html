@@ -765,10 +765,10 @@
       const isFav = currentCocktail && favorites.some(f => f.id === currentCocktail.id);
 
       return (
-        <div className="min-h-screen flex flex-col justify-between max-w-md mx-auto relative px-4 pb-8 pt-3">
+        <div className="min-h-screen min-h-[100dvh] flex flex-col justify-between max-w-md mx-auto relative px-3 sm:px-4 pb-[max(env(safe-area-inset-bottom),1.75rem)] pt-[max(env(safe-area-inset-top),3.25rem)]">
           
           {/* HEADER */}
-          <header className="flex items-center justify-between py-3 px-4 glass-panel rounded-2xl mb-4 border border-white/10">
+          <header className="flex items-center justify-between py-2.5 px-3.5 glass-panel rounded-2xl mb-3 border border-white/10">
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-600 to-amber-400 flex items-center justify-center text-black font-extrabold shadow-lg shadow-amber-500/20">
                 ✨
