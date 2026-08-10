@@ -20,7 +20,7 @@ export const Header: React.FC<HeaderProps> = ({
   onToggleAudio,
 }) => {
   return (
-    <header className="sticky top-0 z-40 w-full glass-panel border-b border-white/10 px-4 pb-3 pt-[max(env(safe-area-inset-top),3.25rem)] sm:px-6">
+    <header className="w-full glass-panel border-b border-white/10 px-4 py-3 sm:px-6">
       <div className="max-w-md mx-auto flex items-center justify-between">
         {/* Brand Logo */}
         <div className="flex items-center gap-2.5">

@@ -82,3 +82,11 @@
   transition: all 0.05s ease-out;
 }
 
+/* Safe Area Spacing for iOS / iPhone 15 Pro Dynamic Island & Home Indicator */
+.ios-safe-container {
+  padding-top: 68px;
+  padding-bottom: 32px;
+  padding-top: max(calc(env(safe-area-inset-top, 0px) + 20px), 68px);
+  padding-bottom: max(calc(env(safe-area-inset-bottom, 0px) + 20px), 32px);
+}
+

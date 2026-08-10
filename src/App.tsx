@@ -109,7 +109,7 @@ export default function App() {
   }, []);
 
   return (
-    <div className="min-h-screen min-h-[100dvh] flex flex-col justify-between bg-[#0b0b0e] text-slate-100 font-sans selection:bg-amber-500 selection:text-black">
+    <div className="min-h-screen min-h-[100dvh] flex flex-col justify-between bg-[#0b0b0e] text-slate-100 font-sans selection:bg-amber-500 selection:text-black ios-safe-container">
       {/* App Header */}
       <Header
         historyCount={history.length}

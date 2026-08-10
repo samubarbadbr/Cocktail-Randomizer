@@ -14,7 +14,7 @@ export const RandomizerButton: React.FC<RandomizerButtonProps> = ({
   hasResult,
 }) => {
   return (
-    <div className="w-full max-w-md mx-auto px-4 pt-2 pb-[max(env(safe-area-inset-bottom),1.75rem)] flex flex-col items-center">
+    <div className="w-full max-w-md mx-auto px-2 pt-1 pb-2 flex flex-col items-center">
       <motion.button
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.95 }}
