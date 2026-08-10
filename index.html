@@ -1,19 +1,1097 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="it" class="dark">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <meta name="theme-color" content="#0b0b0e" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <title>Cocktail Randomizer — Cosa beviamo stasera?</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=Syne:wght@500;700;800&display=swap" rel="stylesheet">
-  </head>
-  <body class="bg-[#0b0b0e] text-slate-100 antialiased selection:bg-amber-500 selection:text-black overflow-x-hidden">
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b0b0e" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Cocktail Randomizer — Cosa beviamo stasera?</title>
 
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            syne: ['"Syne"', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              dark: '#0b0b0e',
+              panel: '#121218',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- React 18 & ReactDOM 18 via CDN -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+
+  <!-- Babel Standalone for in-browser JSX transpilation -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      background-color: #0b0b0e;
+      color: #f1f5f9;
+      min-height: 100vh;
+      min-height: 100dvh;
+      overflow-x: hidden;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    h1, h2, h3, .font-syne {
+      font-family: 'Syne', sans-serif;
+    }
+
+    /* Custom scrollbars */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 15, 20, 0.5);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(245, 158, 11, 0.3);
+      border-radius: 9999px;
+    }
+
+    /* Glassmorphism effects */
+    .glass-panel {
+      background: rgba(18, 18, 24, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .glass-card {
+      background: linear-gradient(135deg, rgba(28, 27, 38, 0.85) 0%, rgba(18, 18, 24, 0.95) 100%);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .amber-glow {
+      box-shadow: 0 0 35px -5px rgba(245, 158, 11, 0.35);
+    }
+
+    @keyframes pulse-slow {
+      0%, 100% { transform: scale(1); opacity: 0.8; }
+      50% { transform: scale(1.06); opacity: 1; }
+    }
+    .animate-pulse-slow {
+      animation: pulse-slow 3s ease-in-out infinite;
+    }
+
+    .shuffle-blur {
+      filter: blur(3px);
+      transform: translateY(-4px);
+      transition: all 0.05s ease-out;
+    }
+
+    /* Hide scrollbars for Chrome, Safari and Opera */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    /* Hide scrollbars for IE, Edge and Firefox */
+    .no-scrollbar {
+      -ms-overflow-style: none;  /* IE and Edge */
+      scrollbar-width: none;  /* Firefox */
+    }
+  </style>
+</head>
+<body class="bg-[#0b0b0e] text-slate-100 antialiased selection:bg-amber-500 selection:text-black">
+  <div id="root"></div>
+
+  <!-- Application Logic in JSX parsed by Babel Standalone -->
+  <script type="text/babel">
+    const { useState, useEffect, useMemo, useCallback, useRef } = React;
+
+    // --- COCKTAIL DATABASE (40+ cocktails including Italian Classics & Mocktails) ---
+    const COCKTAILS_DATABASE = [
+      {
+        id: 'negroni',
+        name: 'Negroni',
+        category: 'Classico',
+        description: 'L\'icona dell\'aperitivo italiano nel mondo. Equilibrio perfetto tra l\'amaro del Campari, la dolcezza del Vermouth e il carattere del Gin.',
+        flavor: ['Amaro', 'Speziato', 'Agrumato'],
+        ingredients: [
+          { name: 'Gin', amount: '30 ml' },
+          { name: 'Campari', amount: '30 ml' },
+          { name: 'Vermouth Rosso Dolce', amount: '30 ml' }
+        ],
+        story: 'Nato a Firenze nel 1919 quando il Conte Camillo Negroni chiese al barman Fosco Scarselli di rinforzare il suo Americano con un tocco di gin.',
+        glass: 'Old Fashioned',
+        garnish: 'Fetta di arancia fresca',
+        abv: 'Elevato',
+        colorAccent: 'red'
+      },
+      {
+        id: 'negroni-sbagliato',
+        name: 'Negroni Sbagliato',
+        category: 'Aperitivo',
+        description: 'Il classico errore diventato leggenda nei bar milanesi. Sostituisce il Gin con il Prosecco per un aperitivo più leggero e frizzante.',
+        flavor: ['Amaro', 'Frizzante', 'Agrumato'],
+        ingredients: [
+          { name: 'Campari', amount: '30 ml' },
+          { name: 'Vermouth Rosso', amount: '30 ml' },
+          { name: 'Prosecco D.O.C.', amount: '30 ml' }
+        ],
+        story: 'Nato negli anni ’70 al Bar Basso di Milano per una fortunata distrazione del barman Mirko Stocchetto.',
+        glass: 'Old Fashioned',
+        garnish: 'Fetta d\'arancia e oliva',
+        abv: 'Medio',
+        colorAccent: 'red'
+      },
+      {
+        id: 'spritz-aperol',
+        name: 'Aperol Spritz',
+        category: 'Aperitivo',
+        description: 'Il re delle terrazze italiane. Prosecco frizzante, Aperol solare e un tocco di seltz per la massima freschezza.',
+        flavor: ['Frizzante', 'Agrumato', 'Leggero'],
+        ingredients: [
+          { name: 'Prosecco D.O.C.', amount: '90 ml' },
+          { name: 'Aperol', amount: '60 ml' },
+          { name: 'Soda / Seltz', amount: '30 ml' }
+        ],
+        story: 'Evoluzione veneta dell usanza delle truppe austro-ungariche di spruzzare un po\' d\'acqua frizzante nel vino locale.',
+        glass: 'Highball',
+        garnish: 'Fetta d\'arancia e oliva',
+        abv: 'Leggero',
+        colorAccent: 'orange'
+      },
+      {
+        id: 'hugo',
+        name: 'Hugo',
+        category: 'Aperitivo',
+        description: 'Freschissimo aperitivo altoatesino con sciroppo di fiori di sambuco, prosecco, seltz e foglioline di menta.',
+        flavor: ['Floreale', 'Frizzante', 'Fresco'],
+        ingredients: [
+          { name: 'Prosecco D.O.C.', amount: '60 ml' },
+          { name: 'Sciroppo di Sambuco', amount: '30 ml' },
+          { name: 'Soda / Seltz', amount: '30 ml' },
+          { name: 'Foglie di menta', amount: '5 foglie' }
+        ],
+        story: 'Ideato nel 2005 dal bartender Roland Gruber in Alto Adige come alternativa più profumata allo Spritz.',
+        glass: 'Highball',
+        garnish: 'Spicchio di lime e menta',
+        abv: 'Leggero',
+        colorAccent: 'cyan'
+      },
+      {
+        id: 'gin-tonic',
+        name: 'Gin Tonic',
+        category: 'Classico',
+        description: 'Il cocktail più ordinato nei locali italiani. Intramontabile matrimonio tra le botaniche del gin e la nota amara della tonica.',
+        flavor: ['Erbaceo', 'Amaro', 'Frizzante'],
+        ingredients: [
+          { name: 'Dry Gin', amount: '50 ml' },
+          { name: 'Acqua Tonica Premium', amount: '120 ml' },
+          { name: 'Ghiaccio a cubi', amount: 'Q.B.' }
+        ],
+        story: 'Creato dai soldati britannici in India per rendere gradevole il chinino anti-malaria combinandolo con il gin.',
+        glass: 'Highball',
+        garnish: 'Fetta di lime o ginepro',
+        abv: 'Elevato',
+        colorAccent: 'cyan'
+      },
+      {
+        id: 'moscow-mule',
+        name: 'Moscow Mule',
+        category: 'Classico',
+        description: 'Servito nell\'iconico mug di rame. Un sorso pungiante di zenzero piccante, vodka e lime fresco che travolge il palato.',
+        flavor: ['Speziato', 'Agrumato', 'Frizzante'],
+        ingredients: [
+          { name: 'Vodka', amount: '45 ml' },
+          { name: 'Succo di lime fresco', amount: '15 ml' },
+          { name: 'Ginger Beer piccante', amount: '120 ml' }
+        ],
+        story: 'Inventato a Los Angeles nel 1941 per smaltire le scorte invendute di vodka e Ginger Beer.',
+        glass: 'Copper Mug',
+        garnish: 'Lime e ciuffo di menta',
+        abv: 'Medio',
+        colorAccent: 'amber'
+      },
+      {
+        id: 'mojito',
+        name: 'Mojito',
+        category: 'Classico',
+        description: 'Il cocktail estivo per eccellenza. Menta fresca delicatamente mazzolata, rum chiaro, lime e zucchero di canna.',
+        flavor: ['Fresco', 'Agrumato', 'Dolce'],
+        ingredients: [
+          { name: 'Rum Blanco Cubano', amount: '50 ml' },
+          { name: 'Succo di lime fresco', amount: '30 ml' },
+          { name: 'Foglie di menta', amount: '8 foglie' },
+          { name: 'Zucchero di canna', amount: '2 cucchiaini' },
+          { name: 'Soda', amount: 'Top' }
+        ],
+        story: 'Reso immortale da Ernest Hemingway che lo sorseggiava alla Bodeguita del Medio a L\'Avana.',
+        glass: 'Highball',
+        garnish: 'Ciuffo di menta e lime',
+        abv: 'Medio',
+        colorAccent: 'emerald'
+      },
+      {
+        id: 'americano',
+        name: 'Americano',
+        category: 'Aperitivo',
+        description: 'Un grande classico dell\'aperitivo italiano. L\'antenato del Negroni, lungo e dissetante grazie al top di soda.',
+        flavor: ['Amaro', 'Frizzante', 'Agrumato'],
+        ingredients: [
+          { name: 'Campari', amount: '30 ml' },
+          { name: 'Vermouth Rosso', amount: '30 ml' },
+          { name: 'Soda / Seltz', amount: '60 ml' }
+        ],
+        story: 'Originariamente chiamato "Milano-Torino", ribattezzato in omaggio ai turisti americani entusiasti.',
+        glass: 'Highball',
+        garnish: 'Fetta d\'arancia e limone',
+        abv: 'Leggero',
+        colorAccent: 'red'
+      },
+      {
+        id: 'paper-plane',
+        name: 'Paper Plane',
+        category: 'Modern Classic',
+        description: 'Creato da Sam Ross nel 2008. Perfetto equilibrio in parti uguali tra note amare, agrumate ed erbacee.',
+        flavor: ['Amaro', 'Agrumato', 'Erbaceo'],
+        ingredients: [
+          { name: 'Bourbon', amount: '22.5 ml' },
+          { name: 'Aperol', amount: '22.5 ml' },
+          { name: 'Amaro Nonino', amount: '22.5 ml' },
+          { name: 'Succo di limone', amount: '22.5 ml' }
+        ],
+        story: 'Prende il nome dal brano "Paper Planes" di M.I.A. ascoltato al Milk & Honey di New York.',
+        glass: 'Coupe',
+        garnish: 'Aeroplanino di carta o twist di limone',
+        abv: 'Medio',
+        colorAccent: 'orange'
+      },
+      {
+        id: 'last-word',
+        name: 'Last Word',
+        category: 'Classico',
+        description: 'Cocktail pre-proibizionismo nato a Detroit. Un sorso intenso, complesso e rinfrescante guidato dal Chartreuse.',
+        flavor: ['Erbaceo', 'Balsamico', 'Agrumato'],
+        ingredients: [
+          { name: 'Gin', amount: '22.5 ml' },
+          { name: 'Chartreuse Verde', amount: '22.5 ml' },
+          { name: 'Liquore Maraschino', amount: '22.5 ml' },
+          { name: 'Succo di lime', amount: '22.5 ml' }
+        ],
+        story: 'Creato nel Detroit Athletic Club negli anni ’20 e riscoperto negli anni 2000 a Seattle.',
+        glass: 'Coupe',
+        garnish: 'Ciliegina al maraschino',
+        abv: 'Elevato',
+        colorAccent: 'emerald'
+      },
+      {
+        id: 'espresso-martini',
+        name: 'Espresso Martini',
+        category: 'Modern Classic',
+        description: 'Il cocktail energizzante per eccellenza. Espresso caldo estratto al momento, vodka e liquore al caffè con schiuma cremosa.',
+        flavor: ['Caffè', 'Dolce', 'Energico'],
+        ingredients: [
+          { name: 'Vodka', amount: '50 ml' },
+          { name: 'Liquore al Caffè', amount: '10 ml' },
+          { name: 'Espresso fresco', amount: '30 ml' },
+          { name: 'Sciroppo di zucchero', amount: '10 ml' }
+        ],
+        story: 'Dick Bradsell lo creò negli anni ’80 per una modella famosa che chiese un drink per tenersi sveglia.',
+        glass: 'Coupe',
+        garnish: '3 chicchi di caffè disposti a triangolo',
+        abv: 'Medio',
+        colorAccent: 'amber'
+      },
+      {
+        id: 'old-fashioned',
+        name: 'Old Fashioned',
+        category: 'Classico',
+        description: 'Il re indiscusso dei cocktail a base Whiskey. Pochi ingredienti scelti per valorizzare la complessità dello spirito base.',
+        flavor: ['Speziato', 'Dolce', 'Complesso'],
+        ingredients: [
+          { name: 'Bourbon / Rye Whiskey', amount: '60 ml' },
+          { name: 'Zolletta di zucchero', amount: '1 pc' },
+          { name: 'Angostura Bitters', amount: '2-3 dash' }
+        ],
+        story: 'Risale alla prima definizione ufficiale di "cocktail" del 1806: distillato, zucchero, acqua e bitter.',
+        glass: 'Old Fashioned',
+        garnish: 'Scorza d\'arancia e ciliegia',
+        abv: 'Molto Elevato',
+        colorAccent: 'amber'
+      },
+      {
+        id: 'margarita',
+        name: 'Margarita',
+        category: 'Classico',
+        description: 'Il cocktail messicano più famoso al mondo. Tequila vigorosa, note agrumate di Triple Sec e l\'immancabile orlo di sale.',
+        flavor: ['Agrumato', 'Sapido', 'Fresco'],
+        ingredients: [
+          { name: 'Tequila Blanco', amount: '50 ml' },
+          { name: 'Cointreau / Triple Sec', amount: '20 ml' },
+          { name: 'Succo di lime fresco', amount: '15 ml' }
+        ],
+        story: 'Leggenda narra sia stato dedicato negli anni \'30 a una showgirl allergica a molti alcolici tranne la Tequila.',
+        glass: 'Coupe',
+        garnish: 'Bordo di sale e spicchio di lime',
+        abv: 'Elevato',
+        colorAccent: 'amber'
+      },
+      {
+        id: 'whiskey-sour',
+        name: 'Whiskey Sour',
+        category: 'Classico',
+        description: 'Il contrasto perfetto tra l\'intensità del Bourbon, l\'acidità del limone e la cremosità vellutata dell\'albumina.',
+        flavor: ['Agrumato', 'Cremoso', 'Dolce-Apro'],
+        ingredients: [
+          { name: 'Bourbon Whiskey', amount: '45 ml' },
+          { name: 'Succo di limone fresco', amount: '30 ml' },
+          { name: 'Sciroppo di zucchero', amount: '15 ml' },
+          { name: 'Albume (Opzionale)', amount: '15 ml' }
+        ],
+        story: 'Consumato fin dal XIX secolo dai marinai per prevenire lo scorbuto durante le traversate.',
+        glass: 'Old Fashioned',
+        garnish: 'Ciliegina e Angostura',
+        abv: 'Medio',
+        colorAccent: 'amber'
+      },
+      {
+        id: 'paloma',
+        name: 'Paloma',
+        category: 'Modern Classic',
+        description: 'La bevanda dissetante più amata in Messico. Tequila e soda al pompelmo rosa arricchiti da un tocco di lime e sale.',
+        flavor: ['Fruttato', 'Frizzante', 'Sapido'],
+        ingredients: [
+          { name: 'Tequila Blanco', amount: '50 ml' },
+          { name: 'Succo di lime fresco', amount: '15 ml' },
+          { name: 'Soda al pompelmo rosa', amount: '100 ml' }
+        ],
+        story: 'Creato leggendariamente da Don Javier Delgado Corona al bar La Capilla di Tequila, Jalisco.',
+        glass: 'Highball',
+        garnish: 'Pompelmo rosa e sale',
+        abv: 'Medio',
+        colorAccent: 'rose'
+      },
+      {
+        id: 'crodino-spritz-mocktail',
+        name: 'Crodino Spritz',
+        category: 'Mocktail',
+        description: 'Il classico Biondo analcolico italiano servito in calice con abbondante ghiaccio, soda e fetta d\'arancia.',
+        flavor: ['Amaro', 'Frizzante', 'Agrumato'],
+        ingredients: [
+          { name: 'Crodino Biondo / Rosso', amount: '100 ml' },
+          { name: 'Soda / Acqua frizzante', amount: '30 ml' },
+          { name: 'Ghiaccio a cubi', amount: 'Q.B.' }
+        ],
+        story: 'Nato nel 1965 a Crodo in Piemonte, diventato l\'aperitivo analcolico monodose più famoso nei bar d\'Italia.',
+        glass: 'Highball',
+        garnish: 'Fetta d\'arancia e oliva',
+        abv: 'Analcolico',
+        colorAccent: 'amber'
+      },
+      {
+        id: 'sanbitter-tonic-mocktail',
+        name: 'Sanbittér Tonic',
+        category: 'Mocktail',
+        description: 'L\'alternativa analcolica al Campari Tonic. Note amare, speziate e frizzanti per un aperitivo deciso.',
+        flavor: ['Amaro', 'Frizzante', 'Erbaceo'],
+        ingredients: [
+          { name: 'Sanbittér Rosso', amount: '100 ml' },
+          { name: 'Acqua Tonica Premium', amount: '50 ml' },
+          { name: 'Succo di limone', amount: '10 ml' }
+        ],
+        story: 'Invenzione moderna dei bar italiani per offrire un aperitivo rosso analcolico di grande personalità.',
+        glass: 'Highball',
+        garnish: 'Scorza di limone e rosmarino',
+        abv: 'Analcolico',
+        colorAccent: 'red'
+      },
+      {
+        id: 'virgin-mojito-mocktail',
+        name: 'Virgin Mojito',
+        category: 'Mocktail',
+        description: 'Tutta la freschezza esplosiva del Mojito cubano senza una singola goccia d\'alcol. Dissetante e profumato.',
+        flavor: ['Fresco', 'Erbaceo', 'Agrumato'],
+        ingredients: [
+          { name: 'Menta fresca', amount: '10 foglie' },
+          { name: 'Succo di lime fresco', amount: '30 ml' },
+          { name: 'Zucchero di canna', amount: '2 cucchiaini' },
+          { name: 'Ginger Ale / Soda', amount: '120 ml' }
+        ],
+        story: 'Il cocktail perfetto per guidare o godersi la serata mantenendo la mente sempre lucidissima.',
+        glass: 'Highball',
+        garnish: 'Ciuffo di menta e lime',
+        abv: 'Analcolico',
+        colorAccent: 'emerald'
+      },
+      {
+        id: 'espresso-tonic-mocktail',
+        name: 'Espresso Tonic',
+        category: 'Mocktail',
+        description: 'La bevanda analcolica più cool nei bar moderni. Acqua tonica amara arricchita da un estratto intenso di espresso.',
+        flavor: ['Caffè', 'Frizzante', 'Agrumato'],
+        ingredients: [
+          { name: 'Espresso doppio', amount: '40 ml' },
+          { name: 'Acqua Tonica Premium', amount: '120 ml' },
+          { name: 'Ghiaccio a cubi grandi', amount: 'Q.B.' }
+        ],
+        story: 'Nata nei bar specialty coffee della Scandinavia nei primi anni 2000, diventata fenomeno estivo globale.',
+        glass: 'Highball',
+        garnish: 'Fetta di pompelmo o limone',
+        abv: 'Analcolico',
+        colorAccent: 'amber'
+      },
+      {
+        id: 'virgin-pina-colada-mocktail',
+        name: 'Virgin Piña Colada',
+        category: 'Mocktail',
+        description: 'Il sogno caraibico in versione zero alcol. Cremoso latte di cocco e succo d\'ananas fresco frullati con ghiaccio.',
+        flavor: ['Dolce', 'Tropicale', 'Cremoso'],
+        ingredients: [
+          { name: 'Succo d\'ananas', amount: '100 ml' },
+          { name: 'Crema di Cocco', amount: '40 ml' },
+          { name: 'Sciroppo di zucchero', amount: '10 ml' }
+        ],
+        story: 'Richiestissima in tutti i lidi estivi e cocktail bar per chi desidera il gusto esotico senza alcol.',
+        glass: 'Hurricane',
+        garnish: 'Fetta d\'ananas e ciliegina',
+        abv: 'Analcolico',
+        colorAccent: 'amber'
+      },
+      {
+        id: 'san-francisco-mocktail',
+        name: 'San Francisco',
+        category: 'Mocktail',
+        description: 'Uno dei mocktail storici più serviti in Italia dagli anni ’80. Mix di succhi agrumati e fondo rosso di granatina.',
+        flavor: ['Fruttato', 'Agrumato', 'Dolce'],
+        ingredients: [
+          { name: 'Succo d\'arancia', amount: '40 ml' },
+          { name: 'Succo d\'ananas', amount: '40 ml' },
+          { name: 'Succo di pompelmo rosa', amount: '30 ml' },
+          { name: 'Sciroppo di Granatina', amount: '15 ml' }
+        ],
+        story: 'Presenza immancabile nei menu analcolici di ogni bar e discoteca italiana dagli anni novanta.',
+        glass: 'Highball',
+        garnish: 'Bordo di zucchero e arancia',
+        abv: 'Analcolico',
+        colorAccent: 'orange'
+      },
+      {
+        id: 'daiquiri',
+        name: 'Daiquiri',
+        category: 'Classico',
+        description: 'La quintessenza della freschezza caraibica. Rum chiaro, lime fresco e uno sciroppo di zucchero ben bilanciato.',
+        flavor: ['Agrumato', 'Fresco', 'Secco'],
+        ingredients: [
+          { name: 'Rum Blanco', amount: '60 ml' },
+          { name: 'Succo di lime fresco', amount: '30 ml' },
+          { name: 'Sciroppo di zucchero', amount: '15 ml' }
+        ],
+        story: 'Nato nelle miniere di Daiquirí a Cuba intorno al 1898 dall\'ingegnere Jennings Cox.',
+        glass: 'Coupe',
+        garnish: 'Ruota di lime',
+        abv: 'Medio',
+        colorAccent: 'emerald'
+      },
+      {
+        id: 'boulevardier',
+        name: 'Boulevardier',
+        category: 'Classico',
+        description: 'Il fratello del Negroni a base di Bourbon o Rye Whiskey. Caldo, avvolgente e piacevolmente amaro.',
+        flavor: ['Amaro', 'Speziato', 'Caldo'],
+        ingredients: [
+          { name: 'Bourbon / Rye Whiskey', amount: '45 ml' },
+          { name: 'Campari', amount: '30 ml' },
+          { name: 'Vermouth Rosso', amount: '30 ml' }
+        ],
+        story: 'Ideato da Erskine Gwynne nel celebre Harry\'s New York Bar di Parigi negli anni ’20.',
+        glass: 'Old Fashioned',
+        garnish: 'Scorza d\'arancia',
+        abv: 'Elevato',
+        colorAccent: 'red'
+      },
+      {
+        id: 'garibaldi',
+        name: 'Garibaldi',
+        category: 'Aperitivo',
+        description: 'Essenziale ed eccellente simbolo dell\'aperitivo italiano. Campari amaro coperto da succo d\'arancia fresco montato a neve.',
+        flavor: ['Amaro', 'Agrumato', 'Leggero'],
+        ingredients: [
+          { name: 'Campari', amount: '45 ml' },
+          { name: 'Succo d\'arancia fresca', amount: '120 ml' }
+        ],
+        story: 'In omaggio a Garibaldi: il rosso del Campari rappresenta le Giubbe Rosse, l\'arancia simboleggia lo sbarco in Sicilia.',
+        glass: 'Highball',
+        garnish: 'Fetta d\'arancia fresca',
+        abv: 'Leggero',
+        colorAccent: 'red'
+      },
+      {
+        id: 'shirley-temple',
+        name: 'Shirley Temple',
+        category: 'Mocktail',
+        description: 'Il mocktail classico più famoso. Ginger Ale dolce, granatina rubino e un tocco di limone.',
+        flavor: ['Dolce', 'Fruttato', 'Frizzante'],
+        ingredients: [
+          { name: 'Ginger Ale', amount: '120 ml' },
+          { name: 'Sciroppo di Granatina', amount: '15 ml' },
+          { name: 'Succo di limone', amount: '5 ml' }
+        ],
+        story: 'Creato negli anni ’30 al bar Chasen\'s di Beverly Hills per la celebre attrice bambina Shirley Temple.',
+        glass: 'Highball',
+        garnish: 'Ciliegina al maraschino',
+        abv: 'Analcolico',
+        colorAccent: 'rose'
+      }
+    ];
+
+    // --- AUDIO SYNTHESIZER ---
+    class SoundFx {
+      constructor() {
+        this.ctx = null;
+        this.enabled = true;
+      }
+
+      init() {
+        try {
+          if (!this.ctx && typeof window !== 'undefined') {
+            const CtxClass = window.AudioContext || window.webkitAudioContext;
+            if (CtxClass) this.ctx = new CtxClass();
+          }
+          if (this.ctx && this.ctx.state === 'suspended') {
+            this.ctx.resume().catch(() => {});
+          }
+        } catch (e) {}
+      }
+
+      playTick() {
+        if (!this.enabled) return;
+        try {
+          this.init();
+          if (!this.ctx) return;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(400 + Math.random() * 200, this.ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(100, this.ctx.currentTime + 0.03);
+          gain.gain.setValueAtTime(0.06, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.03);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.03);
+        } catch (e) {}
+      }
+
+      playChime() {
+        if (!this.enabled) return;
+        try {
+          this.init();
+          if (!this.ctx) return;
+          const now = this.ctx.currentTime;
+          [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, now + i * 0.05);
+            gain.gain.setValueAtTime(0, now + i * 0.05);
+            gain.gain.linearRampToValueAtTime(0.1, now + i * 0.05 + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.05 + 0.3);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now + i * 0.05);
+            osc.stop(now + i * 0.05 + 0.3);
+          });
+        } catch (e) {}
+      }
+    }
+
+    const sound = new SoundFx();
+
+    const triggerHaptic = (pattern = 25) => {
+      try {
+        if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+          navigator.vibrate(pattern);
+        }
+      } catch (e) {}
+    };
+
+    // --- SVG ICONS COMPONENTS ---
+    function GlassIcon({ type, className = "w-5 h-5" }) {
+      return (
+        <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+          {type === 'Coupe' ? (
+            <g><path d="M6 3h12a6 6 0 0 1-6 6 6 6 0 0 1-6-6Z" fill="currentColor" fillOpacity="0.15" /><path d="M12 9v9" /><path d="M8 21h8" /><path d="M4 3h16" /></g>
+          ) : type === 'Old Fashioned' ? (
+            <g><path d="M5 5h14v12a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5Z" fill="currentColor" fillOpacity="0.15" /><path d="M5 8h14" /></g>
+          ) : type === 'Copper Mug' ? (
+            <g><rect x="5" y="5" width="12" height="15" rx="2" fill="currentColor" fillOpacity="0.15" /><path d="M17 8h2a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2" /></g>
+          ) : (
+            <g><path d="M6 3h12v17a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V3Z" fill="currentColor" fillOpacity="0.15" /><path d="M6 7h12" /></g>
+          )}
+        </svg>
+      );
+    }
+
+    // --- MAIN REACT APPLICATION ---
+    function App() {
+      const [currentCocktail, setCurrentCocktail] = useState(null);
+      const [isShuffling, setIsShuffling] = useState(false);
+      const [shuffleName, setShuffleName] = useState('Paper Plane');
+      const [history, setHistory] = useState([]);
+      const [favorites, setFavorites] = useState(() => {
+        try {
+          const saved = localStorage.getItem('cocktail_randomizer_favs');
+          return saved ? JSON.parse(saved) : [];
+        } catch (e) { return []; }
+      });
+
+      const [activeFilter, setActiveFilter] = useState('all');
+      const [isAudioEnabled, setIsAudioEnabled] = useState(true);
+      const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+      const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
+      const [showStory, setShowStory] = useState(false);
+      const [copied, setCopied] = useState(false);
+      const [lastId, setLastId] = useState(null);
+
+      useEffect(() => {
+        sound.enabled = isAudioEnabled;
+      }, [isAudioEnabled]);
+
+      useEffect(() => {
+        try {
+          localStorage.setItem('cocktail_randomizer_favs', JSON.stringify(favorites));
+        } catch (e) {}
+      }, [favorites]);
+
+      // Filtered cocktail pool
+      const filteredPool = useMemo(() => {
+        return COCKTAILS_DATABASE.filter(item => {
+          if (activeFilter === 'all') return true;
+          if (activeFilter === 'amaro') return item.flavor.some(f => f.includes('Amaro') || f.includes('Erbaceo'));
+          if (activeFilter === 'agrumato') return item.flavor.some(f => f.includes('Agrumato') || f.includes('Fresco'));
+          if (activeFilter === 'forte') return item.abv === 'Elevato' || item.abv === 'Molto Elevato';
+          if (activeFilter === 'mocktail') return item.category === 'Mocktail' || item.abv === 'Analcolico';
+          return true;
+        });
+      }, [activeFilter]);
+
+      // Randomize function
+      const handleGenerate = useCallback(() => {
+        if (filteredPool.length === 0 || isShuffling) return;
+
+        triggerHaptic([15, 20]);
+        setIsShuffling(true);
+        setShowStory(false);
+
+        // Anti-repetition rule
+        let pool = filteredPool;
+        if (pool.length > 1 && lastId) {
+          pool = pool.filter(c => c.id !== lastId);
+        }
+
+        const winner = pool[Math.floor(Math.random() * pool.length)];
+
+        // Shuffle sound & text effect
+        let count = 0;
+        const interval = setInterval(() => {
+          const rand = COCKTAILS_DATABASE[Math.floor(Math.random() * COCKTAILS_DATABASE.length)];
+          setShuffleName(rand.name);
+          sound.playTick();
+          count++;
+          if (count >= 14) {
+            clearInterval(interval);
+            setCurrentCocktail(winner);
+            setLastId(winner.id);
+            setHistory(prev => [winner, ...prev.filter(h => h.id !== winner.id)].slice(0, 20));
+            setIsShuffling(false);
+            sound.playChime();
+            triggerHaptic([30, 40, 50]);
+          }
+        }, 50);
+
+      }, [filteredPool, isShuffling, lastId]);
+
+      // Favorite toggle
+      const handleToggleFavorite = (item) => {
+        setFavorites(prev => {
+          const exists = prev.some(f => f.id === item.id);
+          if (exists) return prev.filter(f => f.id !== item.id);
+          triggerHaptic(20);
+          return [item, ...prev];
+        });
+      };
+
+      // Share cocktail
+      const handleShare = async (item) => {
+        const text = `🍹 *${item.name}* (${item.category})\n` +
+          `"Cosa beviamo stasera? ${item.name}!"\n\n` +
+          `🍸 *Bicchiere:* ${item.glass}\n` +
+          `🍋 *Garnish:* ${item.garnish}\n\n` +
+          `📋 *Ingredienti:*\n` +
+          item.ingredients.map(i => `• ${i.name}: ${i.amount}`).join('\n') +
+          `\n\nGenerato con Cocktail Randomizer! 🚀`;
+
+        if (typeof navigator !== 'undefined' && navigator.share) {
+          try {
+            await navigator.share({ title: item.name, text });
+            return;
+          } catch (e) {}
+        }
+
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(text);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2500);
+          }
+        } catch (e) {}
+      };
+
+      const isFav = currentCocktail && favorites.some(f => f.id === currentCocktail.id);
+
+      return (
+        <div className="min-h-screen flex flex-col justify-between max-w-md mx-auto relative px-4 pb-8 pt-3">
+          
+          {/* HEADER */}
+          <header className="flex items-center justify-between py-3 px-4 glass-panel rounded-2xl mb-4 border border-white/10">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-600 to-amber-400 flex items-center justify-center text-black font-extrabold shadow-lg shadow-amber-500/20">
+                ✨
+              </div>
+              <div>
+                <h1 className="text-base font-bold font-syne tracking-tight text-white leading-none">
+                  COCKTAIL <span className="text-amber-400">RANDOMIZER</span>
+                </h1>
+                <p className="text-[10px] uppercase tracking-widest text-slate-400">Cosa beviamo stasera?</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              {/* Audio Toggle */}
+              <button
+                onClick={() => setIsAudioEnabled(!isAudioEnabled)}
+                className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-slate-300 border border-white/5 active:scale-95 transition"
+                title={isAudioEnabled ? "Audio On" : "Audio Mute"}
+              >
+                {isAudioEnabled ? "🔊" : "🔇"}
+              </button>
+
+              {/* Favorites Button */}
+              <button
+                onClick={() => setIsFavoritesOpen(true)}
+                className="relative p-2 rounded-full bg-white/5 hover:bg-white/10 text-slate-300 border border-white/5 active:scale-95 transition"
+                title="Preferiti"
+              >
+                ❤️
+                {favorites.length > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                    {favorites.length}
+                  </span>
+                )}
+              </button>
+
+              {/* History Button */}
+              <button
+                onClick={() => setIsHistoryOpen(true)}
+                className="relative p-2 rounded-full bg-white/5 hover:bg-white/10 text-slate-300 border border-white/5 active:scale-95 transition"
+                title="Cronologia"
+              >
+                📜
+                {history.length > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-amber-500 text-black text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                    {history.length}
+                  </span>
+                )}
+              </button>
+            </div>
+          </header>
+
+          {/* CATEGORY FILTERS */}
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-3 text-xs">
+            {[
+              { id: 'all', label: 'Tutti i drink' },
+              { id: 'amaro', label: 'Amari & Erbe' },
+              { id: 'agrumato', label: 'Agrumati & Freschi' },
+              { id: 'forte', label: 'Secchi & Forti' },
+              { id: 'mocktail', label: 'Analcolici' }
+            ].map(f => (
+              <button
+                key={f.id}
+                onClick={() => setActiveFilter(f.id)}
+                className={`px-3 py-1.5 rounded-full whitespace-nowrap font-medium transition border ${
+                  activeFilter === f.id
+                    ? 'bg-amber-500/20 text-amber-300 border-amber-500/50 shadow-sm'
+                    : 'bg-white/5 text-slate-400 border-white/5 hover:bg-white/10'
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+
+          {/* MAIN DISPLAY AREA */}
+          <div className="flex-1 flex flex-col justify-center items-center my-3">
+            {isShuffling ? (
+              <div className="w-full glass-card p-8 rounded-3xl text-center border border-amber-500/30 flex flex-col items-center justify-center min-h-[220px]">
+                <div className="w-12 h-12 rounded-full bg-amber-500/20 flex items-center justify-center border border-amber-500/40 animate-spin text-xl mb-3">
+                  🎲
+                </div>
+                <h2 className="text-2xl font-extrabold font-syne text-white tracking-tight shuffle-blur mb-1">
+                  {shuffleName}
+                </h2>
+                <p className="text-xs text-amber-400 font-medium">Mescolando gli ingredienti...</p>
+              </div>
+            ) : currentCocktail ? (
+              /* COCKTAIL CARD RESULT */
+              <div className="w-full glass-card rounded-3xl p-6 border border-amber-500/20 shadow-2xl relative overflow-hidden">
+                {/* Header info */}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                      {currentCocktail.category}
+                    </span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-slate-300">
+                      ABV {currentCocktail.abv}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => handleToggleFavorite(currentCocktail)}
+                      className="p-2 rounded-full bg-white/5 border border-white/10 active:scale-90 transition text-sm"
+                    >
+                      {isFav ? '❤️' : '🤍'}
+                    </button>
+                    <button
+                      onClick={() => handleShare(currentCocktail)}
+                      className="p-2 rounded-full bg-white/5 border border-white/10 active:scale-90 transition text-sm"
+                    >
+                      {copied ? '✅' : '🔗'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Cocktail Title */}
+                <div className="text-center my-3">
+                  <h2 className="text-3xl font-extrabold font-syne tracking-tight text-white mb-2">
+                    {currentCocktail.name}
+                  </h2>
+                  <p className="text-xs text-slate-300 leading-relaxed max-w-xs mx-auto">
+                    {currentCocktail.description}
+                  </p>
+                </div>
+
+                {/* Flavor tags */}
+                <div className="flex flex-wrap justify-center gap-1.5 my-3">
+                  {currentCocktail.flavor.map((f, i) => (
+                    <span key={i} className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/20">
+                      {f}
+                    </span>
+                  ))}
+                </div>
+
+                {/* Ingredients list */}
+                <div className="bg-black/40 rounded-2xl p-4 border border-white/10 my-4">
+                  <div className="text-xs font-bold uppercase tracking-wider text-amber-400 font-syne mb-2.5 border-b border-white/10 pb-1.5 flex justify-between">
+                    <span>Ingredienti</span>
+                    <span className="text-[10px] text-slate-400 font-sans font-normal">Dosi per 1 drink</span>
+                  </div>
+                  <ul className="space-y-1.5 text-xs">
+                    {currentCocktail.ingredients.map((ing, idx) => (
+                      <li key={idx} className="flex justify-between items-center py-0.5 border-b border-white/5 last:border-0">
+                        <span className="text-slate-100">{ing.name}</span>
+                        <span className="font-bold text-amber-300 font-mono text-[11px] bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
+                          {ing.amount}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Glassware & Garnish */}
+                <div className="grid grid-cols-2 gap-2.5 mb-4">
+                  <div className="bg-white/5 rounded-2xl p-2.5 border border-white/5 flex items-center gap-2 min-w-0">
+                    <GlassIcon type={currentCocktail.glass} className="w-5 h-5 text-amber-400 shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <span className="block text-[9px] uppercase tracking-wider text-slate-400">Bicchiere</span>
+                      <span className="text-xs font-semibold text-slate-200 block truncate">{currentCocktail.glass}</span>
+                    </div>
+                  </div>
+
+                  <div className="bg-white/5 rounded-2xl p-2.5 border border-white/5 flex items-center gap-2 min-w-0">
+                    <span className="text-base shrink-0">🍋</span>
+                    <div className="min-w-0 flex-1">
+                      <span className="block text-[9px] uppercase tracking-wider text-slate-400">Garnish</span>
+                      <span className="text-xs font-semibold text-slate-200 block leading-tight break-words" title={currentCocktail.garnish}>
+                        {currentCocktail.garnish}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Story accordion */}
+                <div className="border border-white/10 rounded-2xl bg-white/5 overflow-hidden">
+                  <button
+                    onClick={() => setShowStory(!showStory)}
+                    className="w-full px-4 py-2.5 text-xs font-semibold text-slate-300 flex items-center justify-between"
+                  >
+                    <span>📖 Curiosità & Storia</span>
+                    <span className="text-amber-400 font-bold">{showStory ? '▲' : '▼'}</span>
+                  </button>
+                  {showStory && (
+                    <div className="px-4 pb-3 text-xs text-slate-300 border-t border-white/5 bg-black/20 pt-2 leading-relaxed">
+                      {currentCocktail.story}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              /* HERO INTRO SCREEN */
+              <div className="text-center py-8 px-4 flex flex-col items-center my-auto">
+                <div className="w-20 h-20 rounded-3xl bg-gradient-to-b from-amber-500/20 to-black/60 border border-amber-500/30 flex items-center justify-center text-3xl mb-4 shadow-2xl backdrop-blur-md">
+                  🍸
+                </div>
+                <span className="text-xs font-bold uppercase tracking-widest text-amber-400 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20 mb-3">
+                  Nightlife Randomizer
+                </span>
+                <h2 className="text-3xl font-extrabold font-syne text-white tracking-tight mb-2">
+                  Cosa beviamo stasera?
+                </h2>
+                <p className="text-xs text-slate-300 leading-relaxed max-w-xs mb-6">
+                  Premi il pulsante oro qui sotto e lascia decidere al caso il cocktail perfetto per te e i tuoi amici!
+                </p>
+                <div className="grid grid-cols-3 gap-2 w-full max-w-xs bg-white/5 p-3 rounded-2xl border border-white/5 text-center text-xs">
+                  <div>
+                    <span className="block font-bold text-amber-400">{COCKTAILS_DATABASE.length}</span>
+                    <span className="text-[10px] text-slate-400">Cocktail</span>
+                  </div>
+                  <div>
+                    <span className="block font-bold text-amber-400">100%</span>
+                    <span className="text-[10px] text-slate-400">Casuale</span>
+                  </div>
+                  <div>
+                    <span className="block font-bold text-amber-400">Instant</span>
+                    <span className="text-[10px] text-slate-400">Offline</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* PRIMARY RANDOMIZER CTA BUTTON */}
+          <div className="pt-2">
+            <button
+              onClick={handleGenerate}
+              disabled={isShuffling}
+              className={`w-full py-4 px-6 rounded-2xl font-bold font-syne text-lg tracking-wide uppercase transition-all duration-300 flex items-center justify-center gap-2 border shadow-2xl ${
+                isShuffling
+                  ? 'bg-amber-600 text-black border-amber-400 animate-pulse'
+                  : 'bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-black border-amber-300 amber-glow active:scale-95 hover:brightness-110'
+              }`}
+            >
+              <span className="text-xl">🎲</span>
+              <span>{isShuffling ? 'ESTRAZIONE...' : currentCocktail ? 'GENERA UN ALTRO COCKTAIL' : 'COSA BEVIAMO STASERA?'}</span>
+            </button>
+          </div>
+
+          {/* HISTORY DRAWER MODAL */}
+          {isHistoryOpen && (
+            <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex justify-end">
+              <div className="w-full max-w-xs h-full bg-[#121218] border-l border-white/10 p-5 flex flex-col justify-between overflow-y-auto">
+                <div>
+                  <div className="flex justify-between items-center pb-3 border-b border-white/10 mb-4">
+                    <h3 className="font-bold font-syne text-white text-base">📜 Cronologia Sessione</h3>
+                    <button onClick={() => setIsHistoryOpen(false)} className="text-slate-400 text-lg">✕</button>
+                  </div>
+                  {history.length === 0 ? (
+                    <p className="text-xs text-slate-400 text-center py-8">Nessun cocktail estratto finora.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {history.map((item, idx) => (
+                        <div
+                          key={idx}
+                          onClick={() => { setCurrentCocktail(item); setIsHistoryOpen(false); }}
+                          className="p-2.5 rounded-xl bg-white/5 hover:bg-amber-500/10 border border-white/5 cursor-pointer flex justify-between items-center text-xs"
+                        >
+                          <div>
+                            <span className="font-bold text-white block">{item.name}</span>
+                            <span className="text-[10px] text-slate-400">{item.category}</span>
+                          </div>
+                          <span className="text-amber-400 text-xs">➔</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                {history.length > 0 && (
+                  <button onClick={() => setHistory([])} className="w-full py-2 rounded-xl bg-red-500/10 text-red-400 border border-red-500/20 text-xs font-bold mt-4">
+                    Svuota cronologia
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* FAVORITES MODAL */}
+          {isFavoritesOpen && (
+            <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+              <div className="w-full max-w-xs max-h-[80vh] bg-[#121218] border border-white/10 rounded-3xl p-5 flex flex-col justify-between overflow-y-auto shadow-2xl">
+                <div>
+                  <div className="flex justify-between items-center pb-3 border-b border-white/10 mb-4">
+                    <h3 className="font-bold font-syne text-white text-base">❤️ Preferiti ({favorites.length})</h3>
+                    <button onClick={() => setIsFavoritesOpen(false)} className="text-slate-400 text-lg">✕</button>
+                  </div>
+                  {favorites.length === 0 ? (
+                    <p className="text-xs text-slate-400 text-center py-8">Nessun preferito salvato.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {favorites.map(item => (
+                        <div
+                          key={item.id}
+                          onClick={() => { setCurrentCocktail(item); setIsFavoritesOpen(false); }}
+                          className="p-2.5 rounded-xl bg-white/5 hover:bg-rose-500/10 border border-white/5 cursor-pointer flex justify-between items-center text-xs"
+                        >
+                          <div>
+                            <span className="font-bold text-white block">{item.name}</span>
+                            <span className="text-[10px] text-slate-400">{item.category}</span>
+                          </div>
+                          <span className="text-rose-400 text-xs">➔</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <button onClick={() => setIsFavoritesOpen(false)} className="w-full py-2 rounded-xl bg-white/5 text-slate-300 text-xs font-semibold mt-4">
+                  Chiudi
+                </button>
+              </div>
+            </div>
+          )}
+
+        </div>
+      );
+    }
+
+    // Render App
+    const rootElement = document.getElementById('root');
+    if (rootElement) {
+      const root = ReactDOM.createRoot(rootElement);
+      root.render(<App />);
+    }
+  </script>
+</body>
+</html>
