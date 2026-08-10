@@ -29,7 +29,7 @@ export const CocktailCard: React.FC<CocktailCardProps> = ({
       cocktail.ingredients.map(i => `• ${i.name}: ${i.amount}`).join('\n') +
       `\n\nGenerato con Cocktail Randomizer! 🚀`;
 
-    if (navigator.share) {
+    if (typeof navigator !== 'undefined' && 'share' in navigator && navigator.share) {
       try {
         await navigator.share({
           title: cocktail.name,
@@ -42,9 +42,11 @@ export const CocktailCard: React.FC<CocktailCardProps> = ({
     }
 
     try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2500);
+      if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2500);
+      }
     } catch {
       // ignore
     }

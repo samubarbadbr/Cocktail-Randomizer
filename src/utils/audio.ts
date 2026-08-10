@@ -5,18 +5,23 @@ class SoundManager {
   public enabled: boolean = true;
 
   constructor() {
-    // AudioContext will be initialized on user interaction
+    // AudioContext will be initialized safely on user interaction
   }
 
   private initContext() {
-    if (!this.audioCtx) {
-      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      if (AudioCtx) {
-        this.audioCtx = new AudioCtx();
+    try {
+      if (typeof window === 'undefined') return;
+      if (!this.audioCtx) {
+        const AudioCtxClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+        if (AudioCtxClass) {
+          this.audioCtx = new AudioCtxClass();
+        }
       }
-    }
-    if (this.audioCtx && this.audioCtx.state === 'suspended') {
-      this.audioCtx.resume();
+      if (this.audioCtx && this.audioCtx.state === 'suspended') {
+        this.audioCtx.resume().catch(() => {});
+      }
+    } catch {
+      // Fallback if AudioContext is blocked or unsupported on mobile
     }
   }
 
