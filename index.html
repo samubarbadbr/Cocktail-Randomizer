@@ -1,53 +1,27 @@
 <!DOCTYPE html>
-<html lang="it" class="dark">
+<html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="theme-color" content="#07070a" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>Cocktail Lounge & Barman Advisor — Oltre 35 Ricette</title>
-
-  <!-- Google Fonts: Plus Jakarta Sans & Syne -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
+  <title>Cocktail Lounge Advisor - Ricette, Cult Anni '80/'90 & Grandi Classici</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts: Syne & Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
-
-  <!-- Tailwind CSS via CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
-            syne: ['"Syne"', 'sans-serif'],
-          },
-          colors: {
-            brand: {
-              bg: '#07070a',
-              card: '#101018',
-              panel: '#151522',
-              gold: '#f59e0b',
-              neon: '#06b6d4',
-              ruby: '#f43f5e'
-            }
-          }
-        }
-      }
-    }
-  </script>
-
-  <!-- React 18 & ReactDOM 18 (UMD) -->
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-
-  <!-- Lucide Icons Standalone CDN -->
-  <script src="https://unpkg.com/lucide@latest"></script>
-
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+  
+  <!-- React & ReactDOM UMD -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  
   <!-- Babel Standalone for in-browser JSX transpilation -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- Cocktails Database (90+ Ricette) -->
+  <script src="cocktails-data.js"></script>
 
   <style>
     :root { color-scheme: dark; }
@@ -66,21 +40,21 @@
 
     /* Safe Area iOS */
     .ios-safe-layout {
-      padding-top: max(calc(env(safe-area-inset-top, 0px) + 12px), 52px);
+      padding-top: max(calc(env(safe-area-inset-top, 0px) + 10px), 48px);
       padding-bottom: max(calc(env(safe-area-inset-bottom, 0px) + 16px), 24px);
-      padding-left: max(env(safe-area-inset-left, 0px), 14px);
-      padding-right: max(env(safe-area-inset-right, 0px), 14px);
+      padding-left: max(env(safe-area-inset-left, 0px), 12px);
+      padding-right: max(env(safe-area-inset-right, 0px), 12px);
     }
 
     .glass-card {
-      background: linear-gradient(135deg, rgba(22, 22, 34, 0.85) 0%, rgba(12, 12, 19, 0.95) 100%);
+      background: linear-gradient(135deg, rgba(22, 22, 34, 0.88) 0%, rgba(12, 12, 19, 0.96) 100%);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
       border: 1px solid rgba(255, 255, 255, 0.08);
     }
 
     .glass-panel {
-      background: rgba(16, 16, 25, 0.85);
+      background: rgba(16, 16, 25, 0.88);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
       border: 1px solid rgba(255, 255, 255, 0.08);
@@ -103,6 +77,29 @@
     }
     .animate-shaker { animation: shaker-shake 0.28s infinite ease-in-out; }
 
+    /* Custom smooth scrollable styling */
+    .custom-h-scroll {
+      overflow-x: auto;
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(245, 158, 11, 0.3) rgba(255, 255, 255, 0.05);
+    }
+    .custom-h-scroll::-webkit-scrollbar {
+      height: 4px;
+    }
+    .custom-h-scroll::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 4px;
+    }
+    .custom-h-scroll::-webkit-scrollbar-thumb {
+      background: rgba(245, 158, 11, 0.35);
+      border-radius: 4px;
+    }
+    .custom-h-scroll::-webkit-scrollbar-thumb:hover {
+      background: rgba(245, 158, 11, 0.6);
+    }
+
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
@@ -111,963 +108,12 @@
   <div id="root"></div>
 
   <script type="text/babel">
-    const { useState, useEffect, useMemo, useCallback } = React;
+    const { useState, useEffect, useMemo, useRef, useCallback } = React;
 
     // =========================================================================
-    // 🍸 DATABASE CON OLTRE 35 COCKTAIL (Grandi Classici, Cult Anni '80/'90/'00, Tiki, Mocktail)
+    // 🍸 DATABASE MASTER (90+ Ricette d'Autore)
     // =========================================================================
-    const COCKTAILS_DATABASE = [
-      // --- CULT ANNI '80 / '90 / '00 & DISCOTECA ITALIANA ---
-      {
-        id: 'angelo-azzurro',
-        name: 'Angelo Azzurro',
-        category: "Cult Disco Anni '90",
-        baseSpirit: 'Gin',
-        flavors: ['Forte', 'Agrumato', 'Dolce'],
-        strength: 'Forte (High Proof)',
-        glass: 'Coppetta Martini o Tumbler',
-        color: '#06b6d4',
-        badge: 'CULT 90s',
-        description: 'Il mito assoluto delle discoteche italiane anni ’90. Colore blu ipnotico dato dal Blue Curaçao e tenore alcolico esplosivo.',
-        ingredients: [
-          { name: 'Gin London Dry', amount: 40, unit: 'ml' },
-          { name: 'Triple Sec / Cointreau', amount: 20, unit: 'ml' },
-          { name: 'Blue Curaçao', amount: 20, unit: 'ml' },
-          { name: 'Succo di Limone fresco', amount: 10, unit: 'ml' }
-        ],
-        recipe: [
-          'Riempi lo shaker di cubetti di ghiaccio compatti.',
-          'Versa il Gin, il Triple Sec, il Blue Curaçao e il succo di limone fresco.',
-          'Shakera con energia per 12 secondi fino a ghiacciare la superficie esterna.',
-          'Filtra con lo strainer in una coppetta ghiacciata o tumbler con ghiaccio.',
-          'Guarnisci con una scorza o fettina di limone.'
-        ],
-        tips: 'Usa succo di limone fresco appena spremuto per bilanciare l\'intensa dolcezza zuccherina dei due liquori all\'arancia.',
-        story: 'Nato nei locali della Riviera Romagnola e divenuto leggenda nelle notti italiane degli anni ’90, attribuito al barman romano Giovanni "Mami" Ceccarelli.'
-      },
-      {
-        id: 'invisibile',
-        name: 'Invisibile',
-        category: "Cult Disco Anni '80/'90",
-        baseSpirit: 'Vodka',
-        flavors: ['Forte', 'Secco', 'Agrumato'],
-        strength: 'Forte (High Proof)',
-        glass: 'Highball / Tumbler Alto',
-        color: '#a855f7',
-        badge: 'DISCO CULT',
-        description: 'La quintessenza dei bianchi in discoteca: un blend cristallino e potente di 4 distillati trasparenti con sciroppo di zucchero e lime.',
-        ingredients: [
-          { name: 'Vodka Liscia', amount: 20, unit: 'ml' },
-          { name: 'Gin Dry', amount: 20, unit: 'ml' },
-          { name: 'Rum Bianco', amount: 20, unit: 'ml' },
-          { name: 'Triple Sec', amount: 20, unit: 'ml' },
-          { name: 'Succo di Lime/Limone', amount: 20, unit: 'ml' },
-          { name: 'Sciroppo di Zucchero', amount: 10, unit: 'ml' }
-        ],
-        recipe: [
-          'Riempi un tumbler alto con cubetti di ghiaccio fino al bordo.',
-          'Versa Vodka, Gin, Rum Bianco e Triple Sec direttamente nel bicchiere o nello shaker.',
-          'Aggiungi il succo di limone/lime e lo sciroppo.',
-          'Mescola con il bar spoon per amalgamare i quattro spiriti.',
-          'Guarnisci con una fetta di lime.'
-        ],
-        tips: 'Chiamato "Invisibile" perché completamente trasparente come l\'acqua ma ad altissima gradazione alcolica.',
-        story: 'Regina incontrastata delle piste da ballo tra fine anni ’80 e primi 2000, creata per massimizzare la carica alcolica in un unico bicchiere.'
-      },
-      {
-        id: 'godfather',
-        name: 'Godfather',
-        category: 'Classico Anni 70',
-        baseSpirit: 'Whiskey',
-        flavors: ['Dolce', 'Caldo', 'Speziato'],
-        strength: 'Forte',
-        glass: 'Old Fashioned / Tumbler Basso',
-        color: '#d97706',
-        badge: 'VINTAGE',
-        description: 'Dedicato a Marlon Brando e al capolavoro cinematografico: il calore affumicato dello Scotch Whiskey abbraccia la dolcezza vellutata dell\'Amaretto di Saronno.',
-        ingredients: [
-          { name: 'Scotch Whisky o Bourbon', amount: 50, unit: 'ml' },
-          { name: 'Disaronno Originale (Amaretto)', amount: 25, unit: 'ml' }
-        ],
-        recipe: [
-          'Riempi un bicchiere Old Fashioned con un grande blocco di ghiaccio.',
-          'Versa prima lo Scotch Whisky e poi l\'Amaretto Disaronno.',
-          'Mescola delicatamente con il bar spoon per 20 secondi per consentire la perfetta diluizione aromatica.'
-        ],
-        tips: 'Uno Scotch torbato delle Highlands crea un contrasto favoloso con la mandorla dolce dell\'Amaretto.',
-        story: 'Nato negli anni ’70 in onore della celebre pellicola "Il Padrino" (The Godfather), era il drink preferito dell\'attore Marlon Brando.'
-      },
-      {
-        id: 'japanese-slipper',
-        name: 'Japanese Slipper',
-        category: "Cult Anni '80",
-        baseSpirit: 'Midori',
-        flavors: ['Fruttato', 'Dolce', 'Agrumato'],
-        strength: 'Medio',
-        glass: 'Coppetta Martini / Coupe',
-        color: '#22c55e',
-        badge: 'NEON 80s',
-        description: 'Verde smeraldo fluo indimenticabile: il celebre liquore giapponese al melone Midori in perfetta armonia con Cointreau e succo di limone.',
-        ingredients: [
-          { name: 'Midori Melon Liqueur', amount: 30, unit: 'ml' },
-          { name: 'Cointreau / Triple Sec', amount: 30, unit: 'ml' },
-          { name: 'Succo di Limone fresco', amount: 30, unit: 'ml' }
-        ],
-        recipe: [
-          'Riempi lo shaker di ghiaccio cristallino.',
-          'Versa Midori, Cointreau e succo di limone fresco in parti rigorosamente uguali (1:1:1).',
-          'Shakera vigorosamente per 10 secondi e filtra in una coppetta ghiacciata.',
-          'Guarnisci con una ciliegina al maraschino sul fondo o una fettina di melone.'
-        ],
-        tips: 'La regola 1:1:1 rende questo drink facilissimo da preparare a casa garantendo sempre un perfetto bilanciamento tra acido e dolce.',
-        story: 'Creato nel 1984 dal bartender Jean-Paul Bourguignon al Mietta’s Restaurant di Melbourne, Australia.'
-      },
-      {
-        id: 'alexander',
-        name: 'Alexander',
-        category: 'Classico Vellutato',
-        baseSpirit: 'Cognac',
-        flavors: ['Cremoso', 'Dolce', 'Speziato'],
-        strength: 'Medio',
-        glass: 'Coppetta Coupe',
-        color: '#e2e8f0',
-        badge: 'AFTER-DINNER',
-        description: 'Il re dei cocktail da dessert: vellutata crema di cacao scuro, panna liquida fresca e la nobiltà del Cognac o Brandy, spolverato di noce moscata.',
-        ingredients: [
-          { name: 'Cognac o Brandy', amount: 30, unit: 'ml' },
-          { name: 'Crema di Cacao Scura', amount: 30, unit: 'ml' },
-          { name: 'Panna Fresca Liquida', amount: 30, unit: 'ml' },
-          { name: 'Noce Moscata grattugiata', amount: 1, unit: 'spolverata' }
-        ],
-        recipe: [
-          'Versa Cognac, Crema di Cacao e panna liquida nello shaker pieno di ghiaccio.',
-          'Shakera intensamente per 15 secondi per montare la panna e renderla spumosa.',
-          'Filtra a doppio colino nella coppetta e grattugia noce moscata fresca sulla superficie.'
-        ],
-        tips: 'Usa panna fresca non zuccherata; shakera a lungo per ottenere una texture setosa come seta.',
-        story: 'Nato nei primi del ’900 a New York, divenne il simbolo del bere raffinato ed elegante negli anni ruggenti del jazz.'
-      },
-      {
-        id: 'long-island-iced-tea',
-        name: 'Long Island Iced Tea',
-        category: 'Classico Moderno',
-        baseSpirit: 'Vodka',
-        flavors: ['Forte', 'Agrumato', 'Frizzante'],
-        strength: 'Forte (High Proof)',
-        glass: 'Highball / Collins',
-        color: '#d97706',
-        badge: 'PARTY FAVORITE',
-        description: 'Cinque spiriti chiari uniti a succo di limone e sciroppo, colorati con un top di Cola che gli conferisce l\'aspetto innocente del tè freddo.',
-        ingredients: [
-          { name: 'Vodka', amount: 15, unit: 'ml' },
-          { name: 'Tequila Blanco', amount: 15, unit: 'ml' },
-          { name: 'Rum Bianco', amount: 15, unit: 'ml' },
-          { name: 'Gin London Dry', amount: 15, unit: 'ml' },
-          { name: 'Triple Sec', amount: 15, unit: 'ml' },
-          { name: 'Succo di Limone fresco', amount: 25, unit: 'ml' },
-          { name: 'Sciroppo di Zucchero', amount: 20, unit: 'ml' },
-          { name: 'Cola per colmare (top)', amount: 40, unit: 'ml' }
-        ],
-        recipe: [
-          'Riempi un tumbler alto con cubetti di ghiaccio.',
-          'Versa tutti i distillati, il limone e lo sciroppo nello shaker con ghiaccio e shakera brevemente.',
-          'Filtra nel tumbler e completa con un tocco di Cola per dargli il tipico colore ambrato.',
-          'Mescola con delicatezza e guarnisci con fettina di limone.'
-        ],
-        tips: 'La cola serve solo per dare colore e una punta di effervescenza: non esagerare con la quantità.',
-        story: 'Creato nel 1972 da Robert "Rosebud" Butt all\'Oak Beach Inn di Long Island, New York.'
-      },
-
-      // --- GRANDI CLASSICI INTERNAZIONALI & APERITIVI ITALIANI ---
-      {
-        id: 'negroni',
-        name: 'Negroni',
-        category: 'Classico Italiano',
-        baseSpirit: 'Gin',
-        flavors: ['Amaro', 'Speziato', 'Agrumato'],
-        strength: 'Forte',
-        glass: 'Old Fashioned / Tumbler Basso',
-        color: '#ef4444',
-        badge: 'IBA OFFICIAL',
-        description: 'L\'emblema mondiale dell\'aperitivo italiano: perfetta triade in parti uguali tra Gin, Campari e Vermouth Rosso.',
-        ingredients: [
-          { name: 'Gin London Dry', amount: 30, unit: 'ml' },
-          { name: 'Campari Bitter', amount: 30, unit: 'ml' },
-          { name: 'Vermouth Rosso Dolce di Torino', amount: 30, unit: 'ml' }
-        ],
-        recipe: [
-          'Riempi un tumbler basso con ghiaccio a cubi grandi.',
-          'Versa il Gin, il Campari e il Vermouth Rosso in parti uguali.',
-          'Mescola delicatamente per 20 secondi con il bar spoon.',
-          'Strizza gli oli di una scorza d\'arancia sulla superficie e guarnisci con mezza fetta d\'arancia.'
-        ],
-        tips: 'Non shakerare mai: va costruito o stirrato con ghiaccio compatto per preservare la setosità.',
-        story: 'Nato a Firenze nel 1919 al Caffè Casoni per volere del Conte Camillo Negroni.'
-      },
-      {
-        id: 'aperol-spritz',
-        name: 'Aperol Spritz',
-        category: 'Aperitivo Italiano',
-        baseSpirit: 'Aperol',
-        flavors: ['Frizzante', 'Agrumato', 'Dolce-Amaro'],
-        strength: 'Leggero',
-        glass: 'Calice grande da vino',
-        color: '#f97316',
-        badge: 'APERITIVO',
-        description: 'L\'icona del tramonto italiano: Prosecco Brut, Aperol solare e uno spruzzo vivace di soda con fetta d\'arancia.',
-        ingredients: [
-          { name: 'Prosecco D.O.C. Brut', amount: 90, unit: 'ml' },
-          { name: 'Aperol', amount: 60, unit: 'ml' },
-          { name: 'Soda o Seltz', amount: 30, unit: 'ml' }
-        ],
-        recipe: [
-          'Riempi un calice con abbondante ghiaccio.',
-          'Versa prima il Prosecco, poi l\'Aperol con movimento circolare e infine la soda.',
-          'Fai un solo sollevamento delicato con il cucchiaio per amalgamare.'
-        ],
-        tips: 'La sequenza 3-2-1 (Prosecco, Aperol, Soda) fa scendere l\'Aperol naturalmente senza sgasare il vino.',
-        story: 'Evoluzione veneta dell\'abitudine austriaca di allungare ("spritzen") il vino con seltz.'
-      },
-      {
-        id: 'mojito',
-        name: 'Mojito Cubano',
-        category: 'Classico Caraibico',
-        baseSpirit: 'Rum',
-        flavors: ['Fresco', 'Erbaceo', 'Agrumato'],
-        strength: 'Medio',
-        glass: 'Highball / Tumbler Alto',
-        color: '#22c55e',
-        badge: 'DISSETANTE',
-        description: 'La leggenda di Cuba: menta fresca profumata, rum bianco caraibico, lime e zucchero di canna sciolto.',
-        ingredients: [
-          { name: 'Rum Bianco Cubano', amount: 50, unit: 'ml' },
-          { name: 'Succo di Lime fresco', amount: 30, unit: 'ml' },
-          { name: 'Foglie di Menta Fresca', amount: 8, unit: 'foglie' },
-          { name: 'Zucchero di Canna Bianco', amount: 2, unit: 'cucchiaini' },
-          { name: 'Soda / Seltz', amount: 40, unit: 'ml' }
-        ],
-        recipe: [
-          'Nel bicchiere sciogli lo zucchero nel succo di lime fresco.',
-          'Aggiungi la menta e premi delicatissimamente con il muddler senza strapparla.',
-          'Aggiungi ghiaccio tritato, versa il rum e colma con soda.',
-          'Mescola dal basso verso l\'alto e guarnisci con un ciuffo di menta fresca.'
-        ],
-        tips: 'Batti la menta sul palmo della mano per risvegliarne gli oli senza estrarre le note amare.',
-        story: 'Reso immortale nel mondo dallo scrittore Ernest Hemingway alla Bodeguita del Medio a L\'Avana.'
-      },
-      {
-        id: 'margarita',
-        name: 'Margarita Tradizionale',
-        category: 'Classico Messicano',
-        baseSpirit: 'Tequila',
-        flavors: ['Agrumato', 'Sapido', 'Fresco'],
-        strength: 'Forte',
-        glass: 'Coppetta Margarita / Coupe',
-        color: '#84cc16',
-        badge: 'MEXICAN ICON',
-        description: 'L\'anima del Messico: Tequila 100% agave, Cointreau e succo di lime con il celebre orlo di sale marino.',
-        ingredients: [
-          { name: 'Tequila Blanco 100% Agave', amount: 50, unit: 'ml' },
-          { name: 'Cointreau / Triple Sec', amount: 25, unit: 'ml' },
-          { name: 'Succo di Lime fresco', amount: 25, unit: 'ml' },
-          { name: 'Sale fino marino per la crusta', amount: 1, unit: 'pizzico' }
-        ],
-        recipe: [
-          'Inumidisci metà bordo della coppetta con lime e passa nel sale marino.',
-          'Metti Tequila, Cointreau e lime nello shaker con ghiaccio.',
-          'Shakera energicamente per 12 secondi e filtra nella coppetta.'
-        ],
-        tips: 'Borda solo metà bicchiere: l\'ospite deve poter dosare il sale ad ogni sorso.',
-        story: 'Nato a Tijuana negli anni ’30 per conquistare i palati degli avventori oltreconfine.'
-      },
-      {
-        id: 'espresso-martini',
-        name: 'Espresso Martini',
-        category: 'Modern Classic',
-        baseSpirit: 'Vodka',
-        flavors: ['Caffè', 'Dolce', 'Energizzante'],
-        strength: 'Forte',
-        glass: 'Coppetta Martini',
-        color: '#78350f',
-        badge: 'AFTER-DINNER',
-        description: 'L\'elisir della notte: espresso caldo appena estratto, vodka e liquore al caffè agitati fino a una schiuma vellutata.',
-        ingredients: [
-          { name: 'Vodka Liscia', amount: 50, unit: 'ml' },
-          { name: 'Liquore al Caffè (Kahlúa)', amount: 20, unit: 'ml' },
-          { name: 'Espresso Ristretto Caldo', amount: 30, unit: 'ml' },
-          { name: 'Sciroppo di Zucchero', amount: 10, unit: 'ml' }
-        ],
-        recipe: [
-          'Estrai un caffè espresso ristretto caldo.',
-          'Versa tutti gli ingredienti nello shaker stracolmo di ghiaccio.',
-          'Shakera alla massima potenza per 15 secondi per creare la spuma.',
-          'Filtra a doppio colino e decora con 3 chicchi di caffè.'
-        ],
-        tips: 'Versare l\'espresso ancora caldo sul ghiaccio favorisce l\'emulsione della tipica crema dorata.',
-        story: 'Creato a Londra nel 1983 da Dick Bradsell al Fred\'s Club per una celebre top model.'
-      },
-      {
-        id: 'cosmopolitan',
-        name: 'Cosmopolitan',
-        category: 'Modern Classic',
-        baseSpirit: 'Vodka',
-        flavors: ['Fruttato', 'Agrumato', 'Secco'],
-        strength: 'Medio',
-        glass: 'Coppetta Martini',
-        color: '#f43f5e',
-        badge: 'POP ICON',
-        description: 'Il glamour newyorkese per eccellenza: Vodka Citron, Cointreau, succo di mirtillo rosso americano (cranberry) e lime.',
-        ingredients: [
-          { name: 'Vodka al Limone (Citron)', amount: 40, unit: 'ml' },
-          { name: 'Cointreau', amount: 15, unit: 'ml' },
-          { name: 'Succo di Mirtillo Rosso (Cranberry)', amount: 30, unit: 'ml' },
-          { name: 'Succo di Lime fresco', amount: 15, unit: 'ml' }
-        ],
-        recipe: [
-          'Versa tutti gli ingredienti nello shaker con abbondante ghiaccio.',
-          'Shakera per 12 secondi fino al raffreddamento ottimale.',
-          'Filtra nella coppetta ghiacciata e fiammeggia una scorza d\'arancia sulla superficie.'
-        ],
-        tips: 'Il colore deve essere rosa brillante elegante, non rosso acceso: dosa il cranberry con moderazione.',
-        story: 'Reso celebre in tutto il mondo negli anni ’90 da Toby Cecchini a New York e dalla serie cult Sex and the City.'
-      },
-      {
-        id: 'moscow-mule',
-        name: 'Moscow Mule',
-        category: 'Modern Classic',
-        baseSpirit: 'Vodka',
-        flavors: ['Speziato', 'Agrumato', 'Fresco'],
-        strength: 'Medio',
-        glass: 'Copper Mug (Tazza di Rame)',
-        color: '#eab308',
-        badge: 'TRENDY',
-        description: 'La tazza di rame gelata: il brio pungente dello zenzero della Ginger Beer con la freschezza del lime e la vodka.',
-        ingredients: [
-          { name: 'Vodka', amount: 50, unit: 'ml' },
-          { name: 'Ginger Beer artigianale piccante', amount: 120, unit: 'ml' },
-          { name: 'Succo di Lime fresco', amount: 15, unit: 'ml' }
-        ],
-        recipe: [
-          'Riempi la tazza di rame con ghiaccio tritato.',
-          'Aggiungi la vodka e il succo di lime fresco.',
-          'Colma con la Ginger Beer e mescola con delicatezza.',
-          'Guarnisci con uno spicchio di lime e un ciuffo di menta fresca.'
-        ],
-        tips: 'Il rame conduce istantaneamente il freddo all\'esterno offrendo una sensazione polare alle labbra.',
-        story: 'Nato nel 1941 a New York per lanciare la vodka Smirnoff e smaltire scorte di ginger beer.'
-      },
-      {
-        id: 'old-fashioned',
-        name: 'Old Fashioned',
-        category: 'Classico Aristocratico',
-        baseSpirit: 'Whiskey',
-        flavors: ['Speziato', 'Complesso', 'Secco'],
-        strength: 'Forte',
-        glass: 'Old Fashioned / Tumbler Basso',
-        color: '#b45309',
-        badge: 'TIMELESS',
-        description: 'Il re dei cocktail a base Whiskey: una zolletta di zucchero imbevuta di bitter aromatico che sublima l\'essenza del Bourbon.',
-        ingredients: [
-          { name: 'Bourbon o Rye Whiskey', amount: 60, unit: 'ml' },
-          { name: 'Zolletta di Zucchero', amount: 1, unit: 'pz' },
-          { name: 'Angostura Bitters', amount: 3, unit: 'gocce' },
-          { name: 'Acqua naturale', amount: 5, unit: 'ml' }
-        ],
-        recipe: [
-          'Nel bicchiere Old Fashioned metti la zolletta, l\'Angostura e un filo d\'acqua.',
-          'Pesta fino a sciogliere lo zucchero.',
-          'Aggiungi un grande cubo di ghiaccio e metà del whiskey; mescola per 20 secondi.',
-          'Versa il rimanente whiskey e continua a stirrare fino alla diluizione ottimale.',
-          'Strizza una scorza d\'arancia per liberare gli oli essenziali.'
-        ],
-        tips: 'La stirratura lenta e paziente con un unico blocco di ghiaccio è il segreto per una consistenza oleosa.',
-        story: 'La definizione originale di "Cocktail" nel 1806 corrispondeva esattamente a questa composizione.'
-      },
-      {
-        id: 'whiskey-sour',
-        name: 'Whiskey Sour',
-        category: 'Classico Vellutato',
-        baseSpirit: 'Whiskey',
-        flavors: ['Agrumato', 'Cremoso', 'Dolce-Amaro'],
-        strength: 'Medio',
-        glass: 'Old Fashioned o Coupe',
-        color: '#eab308',
-        badge: 'SOUR CLASSIC',
-        description: 'L\'equilibrio sour: l\'acidità del limone e la rotondità del Bourbon montati con albume d\'uovo pastorizzato.',
-        ingredients: [
-          { name: 'Bourbon Whiskey', amount: 50, unit: 'ml' },
-          { name: 'Succo di Limone fresco', amount: 30, unit: 'ml' },
-          { name: 'Sciroppo di Zucchero', amount: 20, unit: 'ml' },
-          { name: 'Albume d\'uovo pastorizzato', amount: 15, unit: 'ml' }
-        ],
-        recipe: [
-          'Esegui un Dry Shake (shakera tutti gli ingredienti a secco senza ghiaccio per 10 secondi).',
-          'Aggiungi ghiaccio e shakera vigorosamente per altri 15 secondi.',
-          'Filtra a doppio colino e gocciola 3 gocce di Angostura sopra la densa schiuma.'
-        ],
-        tips: 'Il dry shake iniziale monta la proteina dell\'albume creando una crema compatta alta mezzo dito.',
-        story: 'Nato nel XIX secolo come razione dei marinai per combattere lo scorbuto con agrumi freschi.'
-      },
-      {
-        id: 'dry-martini',
-        name: 'Dry Martini',
-        category: 'Classico Elegante',
-        baseSpirit: 'Gin',
-        flavors: ['Secco', 'Erbaceo', 'Sapido'],
-        strength: 'Forte (Molto Secco)',
-        glass: 'Coppetta Martini',
-        color: '#94a3b8',
-        badge: 'ARISTOCRATIC',
-        description: 'La purezza del Gin nobilitata da una lacrima di Dry Vermouth francese ed essenza di oliva verde o scorza di limone.',
-        ingredients: [
-          { name: 'Gin London Dry Super Premium', amount: 60, unit: 'ml' },
-          { name: 'Vermouth Extra Dry (Noilly Prat)', amount: 10, unit: 'ml' }
-        ],
-        recipe: [
-          'Raffredda la coppetta con ghiaccio.',
-          'Nel mixing glass pieno di ghiaccio versa il Vermouth Dry e il Gin.',
-          'Stirra delicatamente con il bar spoon per 30 secondi.',
-          'Filtra nella coppetta ghiacciata e guarnisci con oliva verde o twist di limone.'
-        ],
-        tips: 'Bicchiere, mixing glass e spiriti devono essere a temperatura di freezer.',
-        story: 'Il drink prediletto da Winston Churchill, James Bond e Ernest Hemingway.'
-      },
-      {
-        id: 'gin-tonic',
-        name: 'Gin Tonic Botanico',
-        category: 'Intramontabile',
-        baseSpirit: 'Gin',
-        flavors: ['Erbaceo', 'Frizzante', 'Agrumato'],
-        strength: 'Medio',
-        glass: 'Copa de Balon o Highball',
-        color: '#06b6d4',
-        badge: 'REFRESHING',
-        description: 'La freschezza botanica: distillato di ginepro con acqua tonica premium al chinino e profumo di agrumi.',
-        ingredients: [
-          { name: 'London Dry o Gin Botanico', amount: 50, unit: 'ml' },
-          { name: 'Acqua Tonica Indian Premium', amount: 150, unit: 'ml' },
-          { name: 'Bacche di Ginepro e Lime', amount: 1, unit: 'guarnizione' }
-        ],
-        recipe: [
-          'Riempi il ballon con grandi cubi di ghiaccio chiarificato.',
-          'Versa il Gin misurato con il jigger.',
-          'Versa l\'acqua tonica fredda facendola scivolare lungo il bar spoon per non rompere la bolla.',
-          'Fai un unico movimento dal fondo verso l\'alto.'
-        ],
-        tips: 'Rapporto perfetto 1:3; tonica rigorosamente in bottiglietta di vetro appena stappata.',
-        story: 'Nato nell\'esercito coloniale britannico in India per assumere chinino antimalarico.'
-      },
-      {
-        id: 'manhattan',
-        name: 'Manhattan',
-        category: 'Classico Intramontabile',
-        baseSpirit: 'Whiskey',
-        flavors: ['Speziato', 'Complesso', 'Caldo'],
-        strength: 'Forte',
-        glass: 'Coppetta Coupe',
-        color: '#991b1b',
-        badge: 'NEW YORK VINTAGE',
-        description: 'L\'aristocrazia di New York: Rye Whiskey speziato, Vermouth Rosso dolce e note amaricanti di Angostura.',
-        ingredients: [
-          { name: 'Rye Whiskey o Bourbon', amount: 50, unit: 'ml' },
-          { name: 'Vermouth Rosso Dolce', amount: 20, unit: 'ml' },
-          { name: 'Angostura Bitters', amount: 2, unit: 'gocce' }
-        ],
-        recipe: [
-          'Nel mixing glass colmo di ghiaccio unisci Rye Whiskey, Vermouth e Angostura.',
-          'Mescola con il bar spoon per 25 secondi per raggiungere freddo e diluizione ideali.',
-          'Filtra nella coppetta ghiacciata e aggiungi una ciliegina al maraschino.'
-        ],
-        tips: 'Il Rye Whiskey dona la tipica nota secca e pepata superiore al più dolce Bourbon.',
-        story: 'Creato nel 1874 al Manhattan Club di New York per un banchetto in onore della madre di Winston Churchill.'
-      },
-      {
-        id: 'daiquiri',
-        name: 'Daiquiri Classico',
-        category: 'Classico Caraibico',
-        baseSpirit: 'Rum',
-        flavors: ['Agrumato', 'Fresco', 'Secco'],
-        strength: 'Medio',
-        glass: 'Coppetta Coupe',
-        color: '#10b981',
-        badge: 'SOUR CARIBE',
-        description: 'La purezza del Rum Blanco esaltata dalla freschezza acida del lime e un tocco di zucchero.',
-        ingredients: [
-          { name: 'Rum Bianco Cubano', amount: 60, unit: 'ml' },
-          { name: 'Succo di Lime fresco', amount: 30, unit: 'ml' },
-          { name: 'Sciroppo di Zucchero', amount: 15, unit: 'ml' }
-        ],
-        recipe: [
-          'Versa Rum, succo di lime e sciroppo nello shaker pieno di ghiaccio.',
-          'Shakera per 10 secondi a ritmo sostenuto.',
-          'Filtra a doppio colino nella coppetta ghiacciata.'
-        ],
-        tips: 'Assaggia sempre il lime: l\'acidità varia in base alla stagione ed è il cuore del drink.',
-        story: 'Nato nel 1898 a Cuba nelle miniere di ferro di Daiquirí per mano dell\'ingegnere Jennings Cox.'
-      },
-      {
-        id: 'pina-colada',
-        name: 'Piña Colada',
-        category: 'Tiki Tropicale',
-        baseSpirit: 'Rum',
-        flavors: ['Tropicale', 'Dolce', 'Cremoso'],
-        strength: 'Medio',
-        glass: 'Hurricane Glass',
-        color: '#fef08a',
-        badge: 'TROPICAL',
-        description: 'La vacanza in un bicchiere: Rum Bianco, latte di cocco cremoso e succo d\'ananas fresco.',
-        ingredients: [
-          { name: 'Rum Bianco', amount: 50, unit: 'ml' },
-          { name: 'Crema / Latte di Cocco', amount: 30, unit: 'ml' },
-          { name: 'Succo d\'Ananas 100% puro', amount: 90, unit: 'ml' }
-        ],
-        recipe: [
-          'Metti tutti gli ingredienti nel blender con una tazza di ghiaccio tritato.',
-          'Frulla a velocità sostenuta per 15 secondi fino a una consistenza cremosa vellutata.',
-          'Versa nel bicchiere Hurricane e guarnisci con triangolo d\'ananas e ciliegina.'
-        ],
-        tips: 'Usa succo d\'ananas fresco non zuccherato per non appesantire la ricetta.',
-        story: 'Cocktail nazionale di Porto Rico, creato nel 1954 da Ramón "Monchito" Marrero al Caribe Hilton.'
-      },
-      {
-        id: 'mai-tai',
-        name: 'Mai Tai',
-        category: 'Tiki Tradizionale',
-        baseSpirit: 'Rum',
-        flavors: ['Tropicale', 'Speziato', 'Agrumato'],
-        strength: 'Forte',
-        glass: 'Double Old Fashioned / Tiki Mug',
-        color: '#ea580c',
-        badge: 'TIKI ROYAL',
-        description: 'Il capolavoro della cultura Tiki: blend di Rum scuro invecchiato, Orange Curaçao, sciroppo d\'orzata francese e lime.',
-        ingredients: [
-          { name: 'Rum Giamaicano Scuro', amount: 30, unit: 'ml' },
-          { name: 'Rum Agricolo Martinica', amount: 30, unit: 'ml' },
-          { name: 'Orange Curaçao / Triple Sec', amount: 15, unit: 'ml' },
-          { name: 'Sciroppo d\'Orzata (Almond)', amount: 15, unit: 'ml' },
-          { name: 'Succo di Lime fresco', amount: 30, unit: 'ml' }
-        ],
-        recipe: [
-          'Metti tutti gli ingredienti nello shaker con ghiaccio tritato.',
-          'Shakera intensamente e versa tutto (incluso il ghiaccio) nel bicchiere.',
-          'Guarnisci con mezzo guscio di lime rovesciato e un ciuffo di menta a simulare un\'isola tropicale.'
-        ],
-        tips: 'La combinazione di rum giamaicano pungente e rum agricolo erbaceo crea la vera complessità Tiki.',
-        story: 'Creato nel 1944 da Victor "Trader Vic" Bergeron a Oakland. All\'assaggio, un\'amica tahitiana esclamò "Mai Tai-Roa Aé!" (Il migliore del mondo!).'
-      },
-      {
-        id: 'paloma',
-        name: 'Paloma',
-        category: 'Modern Classic',
-        baseSpirit: 'Tequila',
-        flavors: ['Agrumato', 'Frizzante', 'Sapido'],
-        strength: 'Medio',
-        glass: 'Highball / Tumbler Alto',
-        color: '#fb7185',
-        badge: 'MOST POPULAR IN MX',
-        description: 'Il drink più bevuto in Messico: Tequila 100% agave, lime fresco, soda al pompelmo rosa e crusta di sale.',
-        ingredients: [
-          { name: 'Tequila Blanco', amount: 50, unit: 'ml' },
-          { name: 'Succo di Lime fresco', amount: 15, unit: 'ml' },
-          { name: 'Soda al Pompelmo Rosa', amount: 100, unit: 'ml' },
-          { name: 'Sale fino per l\'orlo', amount: 1, unit: 'pizzico' }
-        ],
-        recipe: [
-          'Borda il tumbler con sale e riempilo di ghiaccio.',
-          'Aggiungi la tequila e il succo di lime.',
-          'Colma con soda al pompelmo rosa e mescola delicatamente.',
-          'Guarnisci con mezza fetta di pompelmo rosa.'
-        ],
-        tips: 'Una punta di sciroppo d\'agave esalta la morbidezza del pompelmo.',
-        story: 'Creato da Don Javier Delgado Corona allo storico bar "La Capilla" nella cittadina di Tequila.'
-      },
-      {
-        id: 'french-75',
-        name: 'French 75',
-        category: 'Classico con Bollicine',
-        baseSpirit: 'Gin',
-        flavors: ['Frizzante', 'Agrumato', 'Secco'],
-        strength: 'Forte',
-        glass: 'Flûte o Coupe Champagne',
-        color: '#fef08a',
-        badge: 'CHAMPAGNE COCKTAIL',
-        description: 'La potenza di un cannone da 75mm: Gin profumato, succo di limone e sciroppo completati con Champagne o Prosecco Brut.',
-        ingredients: [
-          { name: 'Gin London Dry', amount: 30, unit: 'ml' },
-          { name: 'Succo di Limone fresco', amount: 15, unit: 'ml' },
-          { name: 'Sciroppo di Zucchero', amount: 15, unit: 'ml' },
-          { name: 'Champagne o Spumante Brut', amount: 60, unit: 'ml' }
-        ],
-        recipe: [
-          'Shakera Gin, succo di limone e sciroppo con ghiaccio.',
-          'Filtra nel flûte ghiacciato.',
-          'Colma delicatamente con Champagne freddo e decora con scorza di limone.'
-        ],
-        tips: 'Lo spumante deve essere brut freddissimo per dare un perlage fine e persistente.',
-        story: 'Creato durante la Prima Guerra Mondiale all\'Harry\'s New York Bar di Parigi, con una potenza paragonata al cannone da campo francese 75mm.'
-      },
-      {
-        id: 'caipirinha',
-        name: 'Caipirinha',
-        category: 'Tradizione Brasiliana',
-        baseSpirit: 'Cachaça',
-        flavors: ['Fresco', 'Agrumato', 'Dolce-Forte'],
-        strength: 'Forte',
-        glass: 'Old Fashioned / Tumbler Basso',
-        color: '#84cc16',
-        badge: 'BRASIL',
-        description: 'L\'energia del Brasile: Cachaça (distillato puro di canna da zucchero), lime fresco pestato con zucchero di canna.',
-        ingredients: [
-          { name: 'Cachaça Brasiliana', amount: 50, unit: 'ml' },
-          { name: 'Lime fresco tagliato a spicchi', amount: 1, unit: 'intero' },
-          { name: 'Zucchero di Canna Bianco', amount: 2, unit: 'cucchiaini' }
-        ],
-        recipe: [
-          'Taglia il lime a spicchi ed elimina il filamento bianco centrale amaro.',
-          'Pesta gli spicchi con lo zucchero nel bicchiere con il muddler.',
-          'Riempi di ghiaccio tritato, versa la Cachaça e mescola con vigore.'
-        ],
-        tips: 'Elimina sempre la parte bianca interna del lime per evitare astringenza amara.',
-        story: 'Nata a San Paolo come rimedio contadino con miele e limone, evoluta nel cocktail simbolo del Carnevale brasiliano.'
-      },
-      {
-        id: 'b-52',
-        name: 'B-52',
-        category: "Cult Shot Anni '80",
-        baseSpirit: 'Kahlúa',
-        flavors: ['Dolce', 'Caffè', 'Cremoso'],
-        strength: 'Medio',
-        glass: 'Bicchiere da Shot',
-        color: '#f59e0b',
-        badge: 'LAYERED SHOT',
-        description: 'Lo shot stratificato più celebre al mondo: tre strati cromatici perfetti di Liquore al Caffè, Crema Baileys e Grand Marnier.',
-        ingredients: [
-          { name: 'Liquore al Caffè (Kahlúa)', amount: 20, unit: 'ml' },
-          { name: 'Irish Cream (Baileys)', amount: 20, unit: 'ml' },
-          { name: 'Grand Marnier / Triple Sec', amount: 20, unit: 'ml' }
-        ],
-        recipe: [
-          'Versa per primo il Kahlúa sul fondo dello shot glass.',
-          'Fai scorrere il Baileys sul dorso di un cucchiaino per creare il secondo strato.',
-          'Completa facendo scendere il Grand Marnier in cima con la stessa tecnica.'
-        ],
-        tips: 'I liquidi restano separati grazie alla diversa densità e peso specifico zuccherino.',
-        story: 'Creato all\'Alice Restaurant di Banff (Canada) e intitolato al bombardiere strategico Boeing B-52.'
-      },
-      {
-        id: 'tequila-sunrise',
-        name: 'Tequila Sunrise',
-        category: "Cult Anni '70",
-        baseSpirit: 'Tequila',
-        flavors: ['Fruttato', 'Dolce', 'Agrumato'],
-        strength: 'Medio',
-        glass: 'Highball / Hurricane',
-        color: '#ea580c',
-        badge: 'RETRO SUNSET',
-        description: 'I colori infuocati dell\'alba: Tequila Blanco, succo d\'arancia dolce e granatina che scende sul fondo per gradazione cromatica.',
-        ingredients: [
-          { name: 'Tequila Blanco', amount: 45, unit: 'ml' },
-          { name: 'Succo d\'Arancia fresca', amount: 90, unit: 'ml' },
-          { name: 'Granatina (Sciroppo al Melograno)', amount: 15, unit: 'ml' }
-        ],
-        recipe: [
-          'Riempi un tumbler alto con cubetti di ghiaccio.',
-          'Versa la tequila e il succo d\'arancia; mescola delicatamente.',
-          'Versa lentamente la granatina che scenderà sul fondo per densità.',
-          'Non mescolare per mantenere il suggestivo effetto visivo dell\'alba.'
-        ],
-        tips: 'Usa succo d\'arancia bionda filtrato per una sfumatura pulita e limpida.',
-        story: 'Reso immortale nel 1972 durante il tour dei Rolling Stones e dall\'omonima canzone degli Eagles.'
-      },
-      {
-        id: 'white-russian',
-        name: 'White Russian',
-        category: "Cult Vintage '90",
-        baseSpirit: 'Vodka',
-        flavors: ['Cremoso', 'Dolce', 'Caffè'],
-        strength: 'Medio',
-        glass: 'Old Fashioned / Tumbler Basso',
-        color: '#f1f5f9',
-        badge: 'THE DUDE FAVORITE',
-        description: 'Il drink cult de "Il Grande Lebowski": Vodka, liquore al caffè Kahlúa e un cappello di panna liquida fresca.',
-        ingredients: [
-          { name: 'Vodka Liscia', amount: 50, unit: 'ml' },
-          { name: 'Liquore al Caffè (Kahlúa)', amount: 20, unit: 'ml' },
-          { name: 'Panna Fresca Liquida o Latte', amount: 30, unit: 'ml' }
-        ],
-        recipe: [
-          'Nel tumbler con ghiaccio versa la vodka e il Kahlúa; mescola.',
-          'Fai colare delicatamente la panna liquida sulla superficie con il dorso di un cucchiaio per creare due livelli visivi.'
-        ],
-        tips: 'Puoi gustarlo a strati separati o mescolarlo prima di bere per una consistenza tipo frappé alcolico.',
-        story: 'Divenuto leggenda universale grazie al personaggio del Drugo (The Dude) nel film cult dei fratelli Coen.'
-      },
-      {
-        id: 'black-russian',
-        name: 'Black Russian',
-        category: 'Classico Anni 50',
-        baseSpirit: 'Vodka',
-        flavors: ['Caffè', 'Dolce-Forte', 'Secco'],
-        strength: 'Forte',
-        glass: 'Old Fashioned',
-        color: '#451a03',
-        badge: 'PRE-LEBOWSKI',
-        description: 'La versione originaria e decisa: il contrasto essenziale tra la purezza della vodka e la ricchezza tostata del caffè Kahlúa.',
-        ingredients: [
-          { name: 'Vodka Liscia', amount: 50, unit: 'ml' },
-          { name: 'Liquore al Caffè (Kahlúa)', amount: 20, unit: 'ml' }
-        ],
-        recipe: [
-          'Riempi un Old Fashioned con ghiaccio a cubi.',
-          'Versa la vodka e il liquore al caffè.',
-          'Mescola con il bar spoon per 15 secondi.'
-        ],
-        tips: 'Servilo con ghiaccio compatto per evitare che si annacqui troppo velocemente.',
-        story: 'Creato nel 1949 all\'Hotel Métropole di Bruxelles dal barman Gustave Tops in onore dell\'ambasciatrice USA in Lussemburgo.'
-      },
-      {
-        id: 'bellini',
-        name: 'Bellini Tradizionale',
-        category: 'Aperitivo Nobile Veneziano',
-        baseSpirit: 'Prosecco',
-        flavors: ['Fruttato', 'Fresco', 'Dolce'],
-        strength: 'Leggero',
-        glass: 'Flûte o Calice',
-        color: '#fdba74',
-        badge: 'HARRY\'S BAR',
-        description: 'La poesia di Venezia: polpa setosa di pesca bianca fresca di stagione unita all\'effervescenza del Prosecco Brut.',
-        ingredients: [
-          { name: 'Prosecco D.O.C. Brut', amount: 100, unit: 'ml' },
-          { name: 'Polpa e Succo di Pesca Bianca', amount: 50, unit: 'ml' },
-          { name: 'Gocce di Succo di Lampone (opzionale per colore)', amount: 2, unit: 'gocce' }
-        ],
-        recipe: [
-          'Versa la purea di pesca bianca ben fredda nel bicchiere.',
-          'Aggiungi lentamente il Prosecco ghiacciato mescolando dal basso per non fare traboccare la spuma.'
-        ],
-        tips: 'Usa rigorosamente pesche bianche schiacciate e mai frullate col frullatore elettrico per non scaldarle.',
-        story: 'Creato nel 1948 da Giuseppe Cipriani all\'Harry\'s Bar di Venezia in onore del pittore Giovanni Bellini.'
-      },
-      {
-        id: 'garibaldi',
-        name: 'Garibaldi',
-        category: 'Aperitivo Tradizionale',
-        baseSpirit: 'Campari',
-        flavors: ['Agrumato', 'Amaro', 'Fresco'],
-        strength: 'Leggero',
-        glass: 'Highball / Tumbler Alto',
-        color: '#dc2626',
-        badge: 'ITALIAN HERO',
-        description: 'L\'unione d\'Italia nel bicchiere: il Bitter Campari di Milano incontra le arance fresche e spumose della Sicilia.',
-        ingredients: [
-          { name: 'Campari Bitter', amount: 40, unit: 'ml' },
-          { name: 'Succo d\'Arancia fresca montato spumoso', amount: 120, unit: 'ml' }
-        ],
-        recipe: [
-          'Riempi un tumbler con ghiaccio a cubi.',
-          'Versa il Campari Bitter.',
-          'Frulla il succo d\'arancia fresca per montarlo e versalo delicatamente sopra per formare una spuma soffice.'
-        ],
-        tips: 'Centrifugare o frullare l\'arancia ad alta velocità crea una crema d\'arancia aerea e setosa spettacolare.',
-        story: 'Chiamato Garibaldi per celebrare l\'unione tra il Nord (Campari milanese) e il Sud (arance rosse siciliane).'
-      },
-      {
-        id: 'hugo',
-        name: 'Hugo Altoatesino',
-        category: 'Aperitivo Fresco',
-        baseSpirit: 'Prosecco',
-        flavors: ['Floreale', 'Fresco', 'Erbaceo'],
-        strength: 'Leggero',
-        glass: 'Calice grande da vino',
-        color: '#10b981',
-        badge: 'SUMMER HIT',
-        description: 'L\'alternativa fresca: fiori di sambuco, menta risvegliata, Prosecco e bollicine di seltz.',
-        ingredients: [
-          { name: 'Prosecco D.O.C.', amount: 90, unit: 'ml' },
-          { name: 'Sciroppo di Fiori di Sambuco', amount: 30, unit: 'ml' },
-          { name: 'Soda / Seltz', amount: 30, unit: 'ml' },
-          { name: 'Foglie di Menta Fresca', amount: 6, unit: 'foglie' }
-        ],
-        recipe: [
-          'Batti la menta tra i palmi e adagiala nel calice colmo di ghiaccio.',
-          'Versa lo sciroppo di sambuco, il Prosecco e la soda; mescola con delicatezza.'
-        ],
-        tips: 'Non pestare mai la menta; una fetta di mela verde o lime completa l\'aroma.',
-        story: 'Nato nel 2005 a Naturno dal bartender Roland Gruber come variante alpina dello Spritz.'
-      },
-      {
-        id: 'boulevardier',
-        name: 'Boulevardier',
-        category: 'Classico Speziato',
-        baseSpirit: 'Whiskey',
-        flavors: ['Amaro', 'Speziato', 'Caldo'],
-        strength: 'Forte',
-        glass: 'Old Fashioned o Coupe',
-        color: '#b91c1c',
-        badge: 'PARISIAN VINTAGE',
-        description: 'Il fratello parigino del Negroni: il calore legnoso del Bourbon unito a Campari e Vermouth Rosso.',
-        ingredients: [
-          { name: 'Bourbon o Rye Whiskey', amount: 45, unit: 'ml' },
-          { name: 'Campari Bitter', amount: 30, unit: 'ml' },
-          { name: 'Vermouth Rosso Dolce', amount: 30, unit: 'ml' }
-        ],
-        recipe: [
-          'Nel mixing glass pieno di ghiaccio mescola Bourbon, Campari e Vermouth per 25 secondi.',
-          'Filtra in un bicchiere Old Fashioned con cubo di ghiaccio grande o in coppetta.'
-        ],
-        tips: 'Aumentare leggermente il Bourbon (45ml vs 30ml) regala rotondità maestosa.',
-        story: 'Creato negli anni ’20 all\'Harry\'s New York Bar di Parigi per lo scrittore Erskine Gwynne.'
-      },
-      {
-        id: 'sazerac',
-        name: 'Sazerac',
-        category: 'Classico Storico di New Orleans',
-        baseSpirit: 'Whiskey',
-        flavors: ['Speziato', 'Erbaceo', 'Secco'],
-        strength: 'Forte',
-        glass: 'Old Fashioned (Senza ghiaccio)',
-        color: '#b45309',
-        badge: 'NEW ORLEANS LEGEND',
-        description: 'Il primo cocktail d\'America: Rye Whiskey, Peychaud\'s Bitters e profumo di Assenzio nella coppetta.',
-        ingredients: [
-          { name: 'Rye Whiskey', amount: 50, unit: 'ml' },
-          { name: 'Assenzio per aromatizzare il bicchiere', amount: 10, unit: 'ml' },
-          { name: 'Zolletta di Zucchero', amount: 1, unit: 'pz' },
-          { name: 'Peychaud’s Bitters', amount: 3, unit: 'gocce' }
-        ],
-        recipe: [
-          'Sciacqua un bicchiere Old Fashioned con l\'assenzio e getta l\'eccesso.',
-          'Nel mixing glass sciogli lo zucchero con il Peychaud\'s e un filo d\'acqua.',
-          'Aggiungi il Rye Whiskey e il ghiaccio; stirra per 30 secondi.',
-          'Filtra nel bicchiere aromatizzato e spremi gli oli di scorza di limone senza lasciarla cadere dentro.'
-        ],
-        tips: 'Il Sazerac si serve freddissimo ma RIGOROSAMENTE senza ghiaccio nel bicchiere finale.',
-        story: 'Nato a New Orleans nel 1850 al Sazerac Coffee House, considerato il più antico cocktail documentato negli USA.'
-      },
-      {
-        id: 'gimlet',
-        name: 'Gimlet',
-        category: 'Classico Coloniale',
-        baseSpirit: 'Gin',
-        flavors: ['Agrumato', 'Fresco', 'Secco'],
-        strength: 'Forte',
-        glass: 'Coppetta Coupe',
-        color: '#10b981',
-        badge: 'BRITISH NAVY',
-        description: 'Il matrimonio storico tra London Dry Gin e Rose\'s Lime Cordial: pulito, aromatico e tagliente.',
-        ingredients: [
-          { name: 'London Dry Gin', amount: 60, unit: 'ml' },
-          { name: 'Lime Cordial o Succo di Lime + Sciroppo', amount: 30, unit: 'ml' }
-        ],
-        recipe: [
-          'Metti Gin e Lime Cordial nello shaker con abbondante ghiaccio.',
-          'Shakera per 12 secondi e filtra in una coppetta fredda.',
-          'Guarnisci con una rondella sottile di lime.'
-        ],
-        tips: 'Se non hai il lime cordial, unisci 20ml di succo di lime fresco e 15ml di sciroppo di zucchero.',
-        story: 'Creato per la Royal Navy britannica dal chirurgo ammiraglio Thomas Gimlette per prevenire lo scorbuto.'
-      },
-      {
-        id: 'sidecar',
-        name: 'Sidecar',
-        category: 'Classico Anni 20',
-        baseSpirit: 'Cognac',
-        flavors: ['Agrumato', 'Complesso', 'Secco'],
-        strength: 'Forte',
-        glass: 'Coppetta Coupe con orlo di zucchero',
-        color: '#f59e0b',
-        badge: 'ROARING 20s',
-        description: 'L\'eleganza del Cognac francese unita alla brillantezza del Triple Sec e al succo di limone fresco.',
-        ingredients: [
-          { name: 'Cognac o Brandy', amount: 50, unit: 'ml' },
-          { name: 'Cointreau / Triple Sec', amount: 20, unit: 'ml' },
-          { name: 'Succo di Limone fresco', amount: 20, unit: 'ml' }
-        ],
-        recipe: [
-          'Passa uno spicchio di limone su metà bordo della coppetta e poggialo sullo zucchero per creare la crusta.',
-          'Shakera tutti gli ingredienti con ghiaccio per 12 secondi e filtra a doppio colino.'
-        ],
-        tips: 'L\'orlo di zucchero sul bordo bilancia l\'acidità vivace del limone.',
-        story: 'Nato all\'Harry\'s Bar di Parigi nel 1921, intitolato a un capitano dell\'esercito che arrivava sempre a bordo di un sidecar.'
-      },
-      {
-        id: 'clover-club',
-        name: 'Clover Club',
-        category: 'Classico Pre-Proibizionismo',
-        baseSpirit: 'Gin',
-        flavors: ['Fruttato', 'Cremoso', 'Agrumato'],
-        strength: 'Medio',
-        glass: 'Coppetta Coupe',
-        color: '#f43f5e',
-        badge: 'PHILADELPHIA CULT',
-        description: 'Rosa vellutato spettacolare: Gin, sciroppo di lamponi freschi, limone e albume d\'uovo montato.',
-        ingredients: [
-          { name: 'Gin London Dry', amount: 45, unit: 'ml' },
-          { name: 'Sciroppo di Lamponi freschi (o marmellata)', amount: 20, unit: 'ml' },
-          { name: 'Succo di Limone fresco', amount: 15, unit: 'ml' },
-          { name: 'Albume d\'uovo pastorizzato', amount: 15, unit: 'ml' }
-        ],
-        recipe: [
-          'Dry shake a secco di tutti gli ingredienti per 10 secondi per emulsionare l\'albume.',
-          'Aggiungi ghiaccio e shakera intensamente per 15 secondi.',
-          'Filtra a doppio colino nella coppetta e guarnisci con tre lamponi freschi.'
-        ],
-        tips: 'L\'albume dona una cremosità tipo schiuma di seta senza alterare i sapori fruttati.',
-        story: 'Nato alla fine dell\'800 al Bellevue-Stratford Hotel di Philadelphia, ritrovo del prestigioso club di avvocati Clover Club.'
-      },
-
-      // --- MOCKTAIL & ZERO ALCOL ---
-      {
-        id: 'crodino-spritz',
-        name: 'Crodino Spritz Zero Alcol',
-        category: 'Mocktail / Analcolico',
-        baseSpirit: 'Zero Alcol',
-        flavors: ['Amaro', 'Agrumato', 'Frizzante'],
-        strength: 'Analcolico (0.0%)',
-        glass: 'Calice grande Ballon',
-        color: '#f59e0b',
-        badge: 'ZERO ALCOL',
-        description: 'Tutto il rito dell\'aperitivo all\'italiana al 100% analcolico: erbe amaricanti, arancia e tonica effervescente.',
-        ingredients: [
-          { name: 'Crodino Biondo o Rosso', amount: 100, unit: 'ml' },
-          { name: 'Acqua Tonica Premium con chinino', amount: 40, unit: 'ml' },
-          { name: 'Succo d\'Arancia fresca', amount: 20, unit: 'ml' }
-        ],
-        recipe: [
-          'Riempi un calice con ghiaccio abbondante.',
-          'Versa il Crodino e il succo d\'arancia.',
-          'Aggiungi la tonica per una bolla persistente e mescola una sola volta.'
-        ],
-        tips: 'La tonica apporta il chinino che simula la complessità botanica di un vero aperitivo alcolico.',
-        story: 'Nato a Crodo in Piemonte nel 1965, l\'icona dell\'aperitivo analcolico biondo.'
-      },
-      {
-        id: 'virgin-mojito',
-        name: 'Virgin Mojito',
-        category: 'Mocktail / Analcolico',
-        baseSpirit: 'Zero Alcol',
-        flavors: ['Fresco', 'Erbaceo', 'Agrumato'],
-        strength: 'Analcolico (0.0%)',
-        glass: 'Highball / Tumbler Alto',
-        color: '#10b981',
-        badge: 'ZERO ALCOL',
-        description: 'Esplosione di freschezza pura: menta fresca risvegliata, lime spremuto, zucchero di canna e Ginger Ale speziata.',
-        ingredients: [
-          { name: 'Foglie di Menta Fresca', amount: 10, unit: 'foglie' },
-          { name: 'Succo di Lime fresco', amount: 30, unit: 'ml' },
-          { name: 'Zucchero di Canna', amount: 2, unit: 'cucchiaini' },
-          { name: 'Ginger Ale ghiacciata', amount: 120, unit: 'ml' }
-        ],
-        recipe: [
-          'Nel tumbler sciogli lo zucchero nel succo di lime.',
-          'Aggiungi la menta sfregata delicatamente.',
-          'Riempi di ghiaccio tritato e colma con Ginger Ale ghiacciata.',
-          'Mescola dal basso per sollevare gli oli essenziali.'
-        ],
-        tips: 'La Ginger Ale regala una punta piccante che rimpiazza splendidamente il calore del rum.',
-        story: 'La variante analcolica più richiesta nei cocktail bar di tutto il mondo.'
-      }
-    ];
+    const COCKTAILS_DATABASE = (typeof window !== 'undefined' && window.COCKTAILS_DATABASE) ? window.COCKTAILS_DATABASE : [];
 
     // =========================================================================
     // 🔊 AUDIO ENGINE (Web Audio API nativo per feedback sonoro)
@@ -1088,13 +134,11 @@
         try {
           this.init(); if (!this.ctx) return;
           const osc = this.ctx.createOscillator(), g = this.ctx.createGain();
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(320 + Math.random() * 200, this.ctx.currentTime);
-          osc.frequency.exponentialRampToValueAtTime(80, this.ctx.currentTime + 0.03);
-          g.gain.setValueAtTime(0.06, this.ctx.currentTime);
-          g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.03);
+          osc.type = 'sine'; osc.frequency.setValueAtTime(440 + Math.random() * 200, this.ctx.currentTime);
+          g.gain.setValueAtTime(0.04, this.ctx.currentTime);
+          g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.04);
           osc.connect(g); g.connect(this.ctx.destination);
-          osc.start(); osc.stop(this.ctx.currentTime + 0.03);
+          osc.start(); osc.stop(this.ctx.currentTime + 0.04);
         } catch (e) {}
       }
       chime() {
@@ -1122,6 +166,71 @@
     };
 
     // =========================================================================
+    // 🧭 COMPONENTE RIGA CON SCORRIMENTO ORIZZONTALE & PULSANTI FRECCIA
+    // =========================================================================
+    function HorizontalScrollRow({ children, title, badge, actionText, onAction, subtitle }) {
+      const scrollRef = useRef(null);
+
+      const scroll = (direction) => {
+        if (scrollRef.current) {
+          const scrollAmount = direction === 'left' ? -220 : 220;
+          scrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+        }
+      };
+
+      return (
+        <div className="space-y-1.5 w-full">
+          {(title || actionText) && (
+            <div className="flex items-center justify-between px-0.5">
+              <div className="flex items-center gap-1.5">
+                {title && (
+                  <span className="text-[11px] uppercase font-bold tracking-wider text-amber-400 font-syne flex items-center gap-1">
+                    {title}
+                  </span>
+                )}
+                {badge && (
+                  <span className="text-[9px] px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 font-semibold">
+                    {badge}
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-1">
+                {actionText && (
+                  <button onClick={onAction} className="text-[10px] text-slate-400 hover:text-amber-300 font-medium mr-1">
+                    {actionText}
+                  </button>
+                )}
+                <button
+                  onClick={() => scroll('left')}
+                  className="w-5 h-5 rounded-full bg-white/5 hover:bg-white/15 text-slate-300 text-xs flex items-center justify-center border border-white/10 active:scale-90 transition"
+                  title="Scorri a sinistra"
+                >
+                  ‹
+                </button>
+                <button
+                  onClick={() => scroll('right')}
+                  className="w-5 h-5 rounded-full bg-white/5 hover:bg-white/15 text-slate-300 text-xs flex items-center justify-center border border-white/10 active:scale-90 transition"
+                  title="Scorri a destra"
+                >
+                  ›
+                </button>
+              </div>
+            </div>
+          )}
+          {subtitle && (
+            <p className="text-[10px] text-slate-400 px-0.5 -mt-1">{subtitle}</p>
+          )}
+          <div
+            ref={scrollRef}
+            className="flex gap-2 custom-h-scroll pb-1.5 pt-0.5 px-0.5 items-center w-full"
+          >
+            {children}
+          </div>
+        </div>
+      );
+    }
+
+    // =========================================================================
     // 📱 APP REACT COMPONENT
     // =========================================================================
     function App() {
@@ -1139,12 +248,16 @@
       const [isShuffling, setIsShuffling] = useState(false);
       const [shufflingName, setShufflingName] = useState('');
       const [servings, setServings] = useState(1);
-      const [activeTab, setActiveTab] = useState('recipe'); // 'recipe' | 'story' | 'tips'
+      const [activeTab, setActiveTab] = useState('recipe'); // 'recipe' | 'tips' | 'story'
+
+      // Swipe per scorrere a destra e sinistra tra i cocktail
+      const [touchStartX, setTouchStartX] = useState(null);
+      const [touchEndX, setTouchEndX] = useState(null);
 
       // Preferiti & Cronologia
       const [favorites, setFavorites] = useState(() => {
         try {
-          const s = localStorage.getItem('cocktails_favs_v2');
+          const s = localStorage.getItem('cocktails_favs_v3');
           return s ? JSON.parse(s) : [];
         } catch (e) { return []; }
       });
@@ -1156,39 +269,147 @@
 
       useEffect(() => { sound.enabled = isSoundOn; }, [isSoundOn]);
       useEffect(() => {
-        try { localStorage.setItem('cocktails_favs_v2', JSON.stringify(favorites)); } catch (e) {}
+        try { localStorage.setItem('cocktails_favs_v3', JSON.stringify(favorites)); } catch (e) {}
       }, [favorites]);
 
-      // Liste filtri
-      const spiritList = ['Tutti', 'Gin', 'Vodka', 'Rum', 'Tequila', 'Whiskey', 'Campari', 'Prosecco', 'Cognac', 'Zero Alcol'];
-      const flavorList = ['Tutti', 'Fresco', 'Agrumato', 'Dolce', 'Amaro', 'Speziato', 'Caffè', 'Fruttato', 'Cremoso', 'Secco', 'Forte'];
+      // 🍸 LISTA COMPLETA DEI DISTILLATI & BASI
+      const spiritList = [
+        'Tutti',
+        'Gin',
+        'Vodka',
+        'Rum',
+        'Tequila / Mezcal',
+        'Whiskey',
+        'Campari',
+        'Prosecco',
+        'Cognac',
+        'Liquori',
+        'Zero Alcol'
+      ];
+
+      // 🍋 LISTA COMPLETA DI TUTTI I 20 GUSTI & PROFILI AROMATICI
+      const flavorList = [
+        'Tutti',
+        'Fresco',
+        'Agrumato',
+        'Dolce',
+        'Amaro',
+        'Tropicale',
+        'Erbaceo',
+        'Speziato',
+        'Frizzante',
+        'Cremoso',
+        'Secco',
+        'Forte',
+        'Caffè',
+        'Fruttato',
+        'Affumicato',
+        'Sapido / Salino',
+        'Vanigliato',
+        'Balsamico / Menta',
+        'Mandorlato',
+        'Piccante',
+        'Floreale'
+      ];
+
+      // ⚡ GRADAZIONI
       const strengthList = ['Tutti', 'Leggero', 'Medio', 'Forte', 'Analcolico'];
+
+      // Helper di matching per Spirito
+      const matchSpirit = useCallback((c, spirit) => {
+        if (spirit === 'Tutti') return true;
+        if (spirit === 'Zero Alcol') return c.baseSpirit === 'Zero Alcol' || c.strength.includes('Analcolico');
+        if (spirit === 'Tequila / Mezcal') {
+          return c.baseSpirit === 'Tequila' || c.baseSpirit === 'Mezcal' ||
+            c.ingredients.some(i => i.name.toLowerCase().includes('tequila') || i.name.toLowerCase().includes('mezcal'));
+        }
+        if (spirit === 'Prosecco') {
+          return c.baseSpirit === 'Prosecco' ||
+            c.ingredients.some(i => i.name.toLowerCase().includes('prosecco') || i.name.toLowerCase().includes('champagne') || i.name.toLowerCase().includes('spumante'));
+        }
+        if (spirit === 'Cognac') {
+          return c.baseSpirit === 'Cognac' ||
+            c.ingredients.some(i => i.name.toLowerCase().includes('cognac') || i.name.toLowerCase().includes('brandy') || i.name.toLowerCase().includes('calvados') || i.name.toLowerCase().includes('pisco'));
+        }
+        if (spirit === 'Liquori') {
+          return c.baseSpirit === 'Liquori' ||
+            c.ingredients.some(i => i.name.toLowerCase().includes('amaretto') || i.name.toLowerCase().includes('midori') || i.name.toLowerCase().includes('baileys') || i.name.toLowerCase().includes('kahlúa') || i.name.toLowerCase().includes('cointreau') || i.name.toLowerCase().includes('limoncello') || i.name.toLowerCase().includes('sambuca') || i.name.toLowerCase().includes('galliano') || i.name.toLowerCase().includes('chartreuse') || i.name.toLowerCase().includes('st-germain') || i.name.toLowerCase().includes('menta'));
+        }
+        const sLow = spirit.toLowerCase();
+        return c.baseSpirit.toLowerCase() === sLow || c.ingredients.some(i => i.name.toLowerCase().includes(sLow));
+      }, []);
+
+      // Helper di matching per Gusto
+      const matchFlavor = useCallback((c, flavor) => {
+        if (flavor === 'Tutti') return true;
+        const fLow = flavor.toLowerCase();
+        return c.flavors.some(f => {
+          const cf = f.toLowerCase();
+          if (cf === fLow) return true;
+          if (fLow.includes('sapido') && (cf.includes('sapido') || cf.includes('salino'))) return true;
+          if (fLow.includes('balsamico') && (cf.includes('balsamico') || cf.includes('menta'))) return true;
+          if (fLow.includes('mandorlato') && (cf.includes('mandorlato') || cf.includes('noce'))) return true;
+          if (fLow.includes('erbaceo') && (cf.includes('erbaceo') || cf.includes('botanico'))) return true;
+          if (fLow.includes('affumicato') && (cf.includes('affumicato') || cf.includes('torbato'))) return true;
+          return cf.includes(fLow) || fLow.includes(cf);
+        });
+      }, []);
+
+      // Helper di matching per Gradazione
+      const matchStrength = useCallback((c, strength) => {
+        if (strength === 'Tutti') return true;
+        if (strength === 'Analcolico') return c.strength.includes('Analcolico') || c.baseSpirit === 'Zero Alcol';
+        return c.strength.toLowerCase().includes(strength.toLowerCase());
+      }, []);
+
+      // Calcolo dinamico conteggio cocktail per ciascun filtro
+      const spiritCounts = useMemo(() => {
+        const counts = {};
+        spiritList.forEach(s => {
+          counts[s] = COCKTAILS_DATABASE.filter(c => matchSpirit(c, s)).length;
+        });
+        return counts;
+      }, [matchSpirit]);
+
+      const flavorCounts = useMemo(() => {
+        const counts = {};
+        flavorList.forEach(f => {
+          counts[f] = COCKTAILS_DATABASE.filter(c => matchFlavor(c, f)).length;
+        });
+        return counts;
+      }, [matchFlavor]);
 
       // Filtro dinamico cocktail
       const filteredCocktails = useMemo(() => {
         return COCKTAILS_DATABASE.filter(c => {
-          if (selectedSpirit !== 'Tutti') {
-            if (selectedSpirit === 'Zero Alcol' && c.baseSpirit !== 'Zero Alcol') return false;
-            if (selectedSpirit !== 'Zero Alcol' && c.baseSpirit !== selectedSpirit && !c.ingredients.some(i => i.name.toLowerCase().includes(selectedSpirit.toLowerCase()))) {
-              return false;
-            }
-          }
-          if (selectedFlavor !== 'Tutti' && !c.flavors.includes(selectedFlavor)) return false;
-          if (selectedStrength !== 'Tutti') {
-            if (selectedStrength === 'Analcolico' && !c.strength.includes('Analcolico')) return false;
-            if (selectedStrength !== 'Analcolico' && !c.strength.includes(selectedStrength)) return false;
-          }
+          if (!matchSpirit(c, selectedSpirit)) return false;
+          if (!matchFlavor(c, selectedFlavor)) return false;
+          if (!matchStrength(c, selectedStrength)) return false;
+          
           if (searchQuery.trim()) {
             const q = searchQuery.toLowerCase();
             const matchName = c.name.toLowerCase().includes(q);
             const matchIng = c.ingredients.some(i => i.name.toLowerCase().includes(q));
             const matchCat = c.category.toLowerCase().includes(q);
             const matchFlav = c.flavors.some(f => f.toLowerCase().includes(q));
-            if (!matchName && !matchIng && !matchCat && !matchFlav) return false;
+            const matchStory = c.story && c.story.toLowerCase().includes(q);
+            const matchTips = c.tips && c.tips.toLowerCase().includes(q);
+            if (!matchName && !matchIng && !matchCat && !matchFlav && !matchStory && !matchTips) return false;
           }
           return true;
         });
-      }, [selectedSpirit, selectedFlavor, selectedStrength, searchQuery]);
+      }, [selectedSpirit, selectedFlavor, selectedStrength, searchQuery, matchSpirit, matchFlavor, matchStrength]);
+
+      // Fallback suggeriti se filtri troppo stretti danno 0 risultati
+      const fallbackSuggestions = useMemo(() => {
+        if (filteredCocktails.length > 0) return [];
+        // Se 0 risultati, suggeriamo cocktail che matchano almeno lo spirito o il gusto
+        return COCKTAILS_DATABASE.filter(c => {
+          if (selectedSpirit !== 'Tutti' && matchSpirit(c, selectedSpirit)) return true;
+          if (selectedFlavor !== 'Tutti' && matchFlavor(c, selectedFlavor)) return true;
+          return false;
+        }).slice(0, 8);
+      }, [filteredCocktails.length, selectedSpirit, selectedFlavor, matchSpirit, matchFlavor]);
 
       // Apri scheda cocktail
       const openCocktail = (cocktail) => {
@@ -1196,8 +417,55 @@
         setServings(1);
         setActiveTab('recipe');
         setScreen('detail');
-        setHistory(prev => [cocktail, ...prev.filter(h => h.id !== cocktail.id)].slice(0, 20));
+        setHistory(prev => [cocktail, ...prev.filter(h => h.id !== cocktail.id)].slice(0, 25));
         triggerHaptic(15);
+      };
+
+      // Navigazione Successivo / Precedente nella Scheda Dettaglio (Scorrimento a destra/sinistra)
+      const currentList = filteredCocktails.length > 0 ? filteredCocktails : COCKTAILS_DATABASE;
+      const currentIndex = currentCocktail ? currentList.findIndex(c => c.id === currentCocktail.id) : -1;
+
+      const goToNextCocktail = useCallback(() => {
+        if (currentList.length === 0) return;
+        let nextIdx = currentIndex + 1;
+        if (nextIdx >= currentList.length) nextIdx = 0; // Loop circolare
+        const next = currentList[nextIdx];
+        if (next) {
+          openCocktail(next);
+          sound.tick();
+        }
+      }, [currentIndex, currentList]);
+
+      const goToPrevCocktail = useCallback(() => {
+        if (currentList.length === 0) return;
+        let prevIdx = currentIndex - 1;
+        if (prevIdx < 0) prevIdx = currentList.length - 1; // Loop circolare
+        const prev = currentList[prevIdx];
+        if (prev) {
+          openCocktail(prev);
+          sound.tick();
+        }
+      }, [currentIndex, currentList]);
+
+      // Gestione Touch Swipe su mobile/tablet
+      const handleTouchStart = (e) => {
+        setTouchStartX(e.targetTouches[0].clientX);
+      };
+      const handleTouchMove = (e) => {
+        setTouchEndX(e.targetTouches[0].clientX);
+      };
+      const handleTouchEnd = () => {
+        if (touchStartX === null || touchEndX === null) return;
+        const distance = touchStartX - touchEndX;
+        const isLeftSwipe = distance > 50; // swipe verso sinistra -> prossimo
+        const isRightSwipe = distance < -50; // swipe verso destra -> precedente
+        if (isLeftSwipe) {
+          goToNextCocktail();
+        } else if (isRightSwipe) {
+          goToPrevCocktail();
+        }
+        setTouchStartX(null);
+        setTouchEndX(null);
       };
 
       // Randomizer / Sorprendimi
@@ -1226,7 +494,7 @@
             setCurrentCocktail(winner);
             setServings(1);
             setActiveTab('recipe');
-            setHistory(prev => [winner, ...prev.filter(h => h.id !== winner.id)].slice(0, 20));
+            setHistory(prev => [winner, ...prev.filter(h => h.id !== winner.id)].slice(0, 25));
             sound.chime();
             triggerHaptic([30, 40, 60]);
           }
@@ -1264,13 +532,20 @@
 
       const isFav = currentCocktail && favorites.some(f => f.id === currentCocktail.id);
 
+      // Collezioni curate per la Copertina
+      const cultDrinks = useMemo(() => COCKTAILS_DATABASE.filter(c => c.category.includes("Cult") || c.badge?.includes("90s") || c.badge?.includes("80s")), []);
+      const aperitiviDrinks = useMemo(() => COCKTAILS_DATABASE.filter(c => c.category.includes("Aperitivo") || c.baseSpirit === 'Campari' || c.baseSpirit === 'Prosecco'), []);
+      const tikiDrinks = useMemo(() => COCKTAILS_DATABASE.filter(c => c.flavors.includes('Tropicale') || c.category.includes('Tiki') || c.category.includes('Caraibico')), []);
+      const mocktailDrinks = useMemo(() => COCKTAILS_DATABASE.filter(c => c.baseSpirit === 'Zero Alcol' || c.strength.includes('Analcolico')), []);
+      const strongDrinks = useMemo(() => COCKTAILS_DATABASE.filter(c => c.strength.includes('Molto Forte') || c.strength.includes('High Proof') || c.badge?.includes('HIGH PROOF')), []);
+
       return (
         <div className="min-h-screen flex flex-col justify-between max-w-md mx-auto relative ios-safe-layout">
 
           {/* ================================================================= */}
-          {/* 🎩 APP HEADER CON DYNAMIC ISLAND SAFETY                          */}
+          {/* 🎩 APP HEADER                                                     */}
           {/* ================================================================= */}
-          <header className="flex items-center justify-between py-2 px-3 glass-panel rounded-2xl mb-3 border border-white/10 shadow-lg">
+          <header className="flex items-center justify-between py-2 px-3 glass-panel rounded-2xl mb-2.5 border border-white/10 shadow-lg shrink-0">
             <div 
               onClick={() => setScreen('cover')} 
               className="flex items-center gap-2 cursor-pointer active:scale-95 transition"
@@ -1289,13 +564,13 @@
             </div>
 
             <div className="flex items-center gap-1.5">
-              {/* Tasto Torna alle Opzioni se sei nel Dettaglio */}
+              {/* Tasto Torna ai Filtri */}
               {screen === 'detail' && !isShuffling && (
                 <button
                   onClick={() => setScreen('advisor')}
                   className="px-2.5 py-1.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 text-[11px] font-bold flex items-center gap-1 active:scale-95 transition"
                 >
-                  ← Filtri
+                  🔍 Filtri
                 </button>
               )}
 
@@ -1358,38 +633,39 @@
           {/* ================================================================= */}
           {/* 🍹 CORPO PRINCIPALE DELL'APP                                       */}
           {/* ================================================================= */}
-          <main className="flex-1 flex flex-col justify-center my-auto">
+          <main className="flex-1 flex flex-col justify-center my-auto w-full">
             
-            {/* 1. COPERTINA INIZIALE (COVER) */}
+            {/* 1. COPERTINA INIZIALE (COVER) CON CAROSELLI SCORREVOLI A DESTRA */}
             {screen === 'cover' && (
-              <div className="w-full glass-card rounded-3xl p-5 border border-amber-500/20 shadow-2xl space-y-4">
+              <div className="w-full glass-card rounded-3xl p-4 sm:p-5 border border-amber-500/20 shadow-2xl space-y-4 max-h-[82vh] overflow-y-auto no-scrollbar">
                 <div className="text-center pt-1">
-                  <div className="relative inline-block mb-3">
-                    <div className="w-20 h-20 mx-auto rounded-3xl bg-gradient-to-tr from-amber-600 via-amber-500 to-amber-300 flex items-center justify-center text-4xl shadow-xl shadow-amber-500/30 gold-glow">
+                  <div className="relative inline-block mb-2.5">
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-3xl bg-gradient-to-tr from-amber-600 via-amber-500 to-amber-300 flex items-center justify-center text-3xl sm:text-4xl shadow-xl shadow-amber-500/30 gold-glow">
                       🍸
                     </div>
-                    <span className="absolute -bottom-1 -right-1 bg-black/80 border border-amber-400 text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                    <span className="absolute -bottom-1 -right-1 bg-black/90 border border-amber-400 text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-full">
                       {COCKTAILS_DATABASE.length} DRINKS
                     </span>
                   </div>
 
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-amber-400 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20 mb-2 inline-block">
-                    Cocktail Lounge & Generator
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-amber-400 bg-amber-500/10 px-3 py-0.5 rounded-full border border-amber-500/20 mb-1.5 inline-block">
+                    Cocktail Lounge & Discovery
                   </span>
 
-                  <h2 className="text-2xl sm:text-3xl font-extrabold font-syne text-white tracking-tight leading-tight">
+                  <h2 className="text-xl sm:text-2xl font-extrabold font-syne text-white tracking-tight leading-tight">
                     Cosa beviamo <span className="text-amber-400">stasera?</span>
                   </h2>
 
-                  <p className="text-xs text-slate-300 mt-2 max-w-xs mx-auto leading-relaxed">
-                    Dai grandi classici IBA ai cult anni '80/'90 come <i>Angelo Azzurro</i>, <i>Invisibile</i> e <i>Japanese Slipper</i>.
+                  <p className="text-xs text-slate-300 mt-1 max-w-xs mx-auto leading-relaxed">
+                    Grandi classici IBA, cult anni '80/'90, aperitivi italiani, creazioni tropicali e mocktail analcolici.
                   </p>
                 </div>
 
-                <div className="space-y-2 pt-1">
+                {/* PULSANTI DI AZIONE PRIMARIA */}
+                <div className="space-y-2 pt-0.5">
                   <button
                     onClick={() => setScreen('advisor')}
-                    className="w-full py-3.5 px-4 rounded-2xl font-bold font-syne text-sm tracking-wide uppercase transition flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-black border border-amber-200 gold-glow active:scale-95 hover:brightness-110 shadow-2xl"
+                    className="w-full py-3 px-4 rounded-2xl font-bold font-syne text-xs sm:text-sm tracking-wide uppercase transition flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-black border border-amber-200 gold-glow active:scale-95 hover:brightness-110 shadow-2xl"
                   >
                     <span>✨</span>
                     <span>SCEGLI PER GUSTO & INGREDIENTI</span>
@@ -1397,81 +673,175 @@
 
                   <button
                     onClick={() => handleRandomize(COCKTAILS_DATABASE)}
-                    className="w-full py-3 px-4 rounded-xl font-bold font-syne text-xs tracking-wider uppercase transition bg-white/10 hover:bg-white/15 text-slate-200 border border-white/15 active:scale-95 flex items-center justify-center gap-2"
+                    className="w-full py-2.5 px-4 rounded-xl font-bold font-syne text-xs tracking-wider uppercase transition bg-white/10 hover:bg-white/15 text-slate-200 border border-white/15 active:scale-95 flex items-center justify-center gap-2"
                   >
                     <span>🎲</span>
                     <span>SORPRENDIMI A CASO (RANDOM)</span>
                   </button>
                 </div>
 
-                {/* SCORCIATOIE ICONICHE */}
-                <div className="pt-2 border-t border-white/5">
-                  <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block mb-2 font-syne">
-                    Selezioni speciali:
-                  </span>
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <button
-                      onClick={() => { setSelectedSpirit('Gin'); setSelectedFlavor('Forte'); setScreen('advisor'); }}
-                      className="p-2.5 rounded-xl bg-cyan-950/30 hover:bg-cyan-900/40 border border-cyan-500/20 text-left transition active:scale-95 group"
+                {/* CAROSELLO 1: CULT ANNI '80, '90 & DISCO (Scorrevole verso destra) */}
+                <HorizontalScrollRow
+                  title="💎 Cult Disco Anni '80 & '90"
+                  badge={`${cultDrinks.length} Drink`}
+                  actionText="Vedi tutti"
+                  onAction={() => { setSelectedSpirit('Tutti'); setSelectedFlavor('Forte'); setScreen('advisor'); }}
+                  subtitle="Scorri verso destra per scoprire le leggende delle discoteche ➔"
+                >
+                  {cultDrinks.map(c => (
+                    <div
+                      key={c.id}
+                      onClick={() => openCocktail(c)}
+                      className="shrink-0 w-36 sm:w-40 p-2.5 rounded-2xl bg-black/40 hover:bg-amber-500/10 border border-white/10 hover:border-amber-500/40 cursor-pointer transition active:scale-95 flex flex-col justify-between"
                     >
-                      <div className="text-base mb-0.5">💎</div>
-                      <div className="font-bold text-cyan-300 text-xs">Cult Disco '90s</div>
-                      <div className="text-[10px] text-slate-400">Angelo Azzurro, Invisibile</div>
-                    </button>
+                      <div>
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-cyan-500/20 text-cyan-300">
+                            {c.badge || 'CULT'}
+                          </span>
+                          <span className="text-xs">🍸</span>
+                        </div>
+                        <h4 className="font-bold font-syne text-xs text-white line-clamp-1">{c.name}</h4>
+                        <p className="text-[10px] text-slate-400 line-clamp-2 mt-0.5 leading-snug">{c.description}</p>
+                      </div>
+                      <div className="mt-2 pt-1 border-t border-white/5 flex justify-between items-center text-[9px] text-amber-300 font-semibold">
+                        <span>{c.baseSpirit}</span>
+                        <span>➔</span>
+                      </div>
+                    </div>
+                  ))}
+                </HorizontalScrollRow>
 
-                    <button
-                      onClick={() => { setSelectedSpirit('Campari'); setSelectedFlavor('Amaro'); setScreen('advisor'); }}
-                      className="p-2.5 rounded-xl bg-rose-950/30 hover:bg-rose-900/40 border border-rose-500/20 text-left transition active:scale-95 group"
+                {/* CAROSELLO 2: APERITIVI ALL'ITALIANA */}
+                <HorizontalScrollRow
+                  title="🍊 Aperitivi & Spritz all'Italiana"
+                  badge={`${aperitiviDrinks.length} Drink`}
+                  actionText="Esplora"
+                  onAction={() => { setSelectedSpirit('Campari'); setScreen('advisor'); }}
+                  subtitle="Scorri verso destra per i grandi rituali italiani ➔"
+                >
+                  {aperitiviDrinks.map(c => (
+                    <div
+                      key={c.id}
+                      onClick={() => openCocktail(c)}
+                      className="shrink-0 w-36 sm:w-40 p-2.5 rounded-2xl bg-black/40 hover:bg-amber-500/10 border border-white/10 hover:border-amber-500/40 cursor-pointer transition active:scale-95 flex flex-col justify-between"
                     >
-                      <div className="text-base mb-0.5">🍊</div>
-                      <div className="font-bold text-rose-300 text-xs">Aperitivi Italiani</div>
-                      <div className="text-[10px] text-slate-400">Negroni, Spritz, Garibaldi</div>
-                    </button>
+                      <div>
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-300">
+                            APERITIVO
+                          </span>
+                          <span className="text-xs">🍊</span>
+                        </div>
+                        <h4 className="font-bold font-syne text-xs text-white line-clamp-1">{c.name}</h4>
+                        <p className="text-[10px] text-slate-400 line-clamp-2 mt-0.5 leading-snug">{c.description}</p>
+                      </div>
+                      <div className="mt-2 pt-1 border-t border-white/5 flex justify-between items-center text-[9px] text-rose-300 font-semibold">
+                        <span>{c.baseSpirit}</span>
+                        <span>➔</span>
+                      </div>
+                    </div>
+                  ))}
+                </HorizontalScrollRow>
 
-                    <button
-                      onClick={() => { setSelectedSpirit('Zero Alcol'); setScreen('advisor'); }}
-                      className="p-2.5 rounded-xl bg-emerald-950/30 hover:bg-emerald-900/40 border border-emerald-500/20 text-left transition active:scale-95 group"
+                {/* CAROSELLO 3: TROPICALI & TIKI */}
+                <HorizontalScrollRow
+                  title="🌴 Tropical & Tiki Passion"
+                  badge={`${tikiDrinks.length} Drink`}
+                  actionText="Vedi tutti"
+                  onAction={() => { setSelectedFlavor('Tropicale'); setScreen('advisor'); }}
+                  subtitle="Scorri verso destra per drink esotici e fruttati ➔"
+                >
+                  {tikiDrinks.map(c => (
+                    <div
+                      key={c.id}
+                      onClick={() => openCocktail(c)}
+                      className="shrink-0 w-36 sm:w-40 p-2.5 rounded-2xl bg-black/40 hover:bg-amber-500/10 border border-white/10 hover:border-amber-500/40 cursor-pointer transition active:scale-95 flex flex-col justify-between"
                     >
-                      <div className="text-base mb-0.5">🌿</div>
-                      <div className="font-bold text-emerald-300 text-xs">Zero Alcol / Mocktail</div>
-                      <div className="text-[10px] text-slate-400">100% analcolici freschi</div>
-                    </button>
+                      <div>
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300">
+                            TIKI & TROPICAL
+                          </span>
+                          <span className="text-xs">🥥</span>
+                        </div>
+                        <h4 className="font-bold font-syne text-xs text-white line-clamp-1">{c.name}</h4>
+                        <p className="text-[10px] text-slate-400 line-clamp-2 mt-0.5 leading-snug">{c.description}</p>
+                      </div>
+                      <div className="mt-2 pt-1 border-t border-white/5 flex justify-between items-center text-[9px] text-amber-400 font-semibold">
+                        <span>{c.baseSpirit}</span>
+                        <span>➔</span>
+                      </div>
+                    </div>
+                  ))}
+                </HorizontalScrollRow>
 
-                    <button
-                      onClick={() => { setScreen('catalog'); }}
-                      className="p-2.5 rounded-xl bg-amber-950/30 hover:bg-amber-900/40 border border-amber-500/20 text-left transition active:scale-95 group"
+                {/* CAROSELLO 4: ZERO ALCOL & MOCKTAIL */}
+                <HorizontalScrollRow
+                  title="🌿 100% Zero Alcol & Mocktail"
+                  badge={`${mocktailDrinks.length} Drink`}
+                  actionText="Tutti Zero"
+                  onAction={() => { setSelectedSpirit('Zero Alcol'); setScreen('advisor'); }}
+                  subtitle="Scorri verso destra per drink analcolici ricchi di gusto ➔"
+                >
+                  {mocktailDrinks.map(c => (
+                    <div
+                      key={c.id}
+                      onClick={() => openCocktail(c)}
+                      className="shrink-0 w-36 sm:w-40 p-2.5 rounded-2xl bg-black/40 hover:bg-emerald-500/10 border border-white/10 hover:border-emerald-500/40 cursor-pointer transition active:scale-95 flex flex-col justify-between"
                     >
-                      <div className="text-base mb-0.5">📚</div>
-                      <div className="font-bold text-amber-300 text-xs">Catalogo Completo</div>
-                      <div className="text-[10px] text-slate-400">Esplora tutti i {COCKTAILS_DATABASE.length}</div>
-                    </button>
-                  </div>
-                </div>
+                      <div>
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300">
+                            0.0% VOL
+                          </span>
+                          <span className="text-xs">🌿</span>
+                        </div>
+                        <h4 className="font-bold font-syne text-xs text-white line-clamp-1">{c.name}</h4>
+                        <p className="text-[10px] text-slate-400 line-clamp-2 mt-0.5 leading-snug">{c.description}</p>
+                      </div>
+                      <div className="mt-2 pt-1 border-t border-white/5 flex justify-between items-center text-[9px] text-emerald-300 font-semibold">
+                        <span>Zero Alcol</span>
+                        <span>➔</span>
+                      </div>
+                    </div>
+                  ))}
+                </HorizontalScrollRow>
+
               </div>
             )}
 
-            {/* 2. RICERCA GUIDATA & FILTRI (ADVISOR) */}
+            {/* 2. RICERCA GUIDATA & FILTRI INTERATTIVI (ADVISOR) */}
             {screen === 'advisor' && (
-              <div className="w-full glass-card rounded-3xl p-4 sm:p-5 border border-white/10 shadow-2xl space-y-3">
-                <div className="flex items-center justify-between pb-1 border-b border-white/5">
+              <div className="w-full glass-card rounded-3xl p-4 border border-white/10 shadow-2xl space-y-3 max-h-[82vh] flex flex-col">
+                <div className="flex items-center justify-between pb-1 border-b border-white/5 shrink-0">
                   <button
                     onClick={() => setScreen('cover')}
                     className="flex items-center gap-1 text-slate-300 hover:text-amber-300 text-xs font-semibold px-2.5 py-1 rounded-xl bg-white/5 border border-white/5 active:scale-95 transition"
                   >
-                    ← Copertina
+                    ← Home
                   </button>
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20">
-                    Filtri Advisor
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => { setSelectedSpirit('Tutti'); setSelectedFlavor('Tutti'); setSelectedStrength('Tutti'); setSearchQuery(''); }}
+                      className="text-[10px] text-slate-400 hover:text-amber-300 underline"
+                    >
+                      Azzera Filtri
+                    </button>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20">
+                      Advisor
+                    </span>
+                  </div>
                 </div>
 
-                <div className="relative">
+                {/* Input Ricerca Testuale */}
+                <div className="relative shrink-0">
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Cerca ingrediente (es. Gin, Kahlúa, Menta...)"
-                    className="w-full px-3.5 py-2 pl-9 rounded-xl bg-black/40 border border-white/10 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition"
+                    placeholder="Cerca ingrediente o cocktail (es. Gin, Menta, Kahlúa...)"
+                    className="w-full px-3.5 py-2 pl-9 rounded-xl bg-black/50 border border-white/10 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition"
                   />
                   <span className="absolute left-3 top-2 text-xs text-slate-400">🔍</span>
                   {searchQuery && (
@@ -1479,96 +849,188 @@
                   )}
                 </div>
 
-                {/* 1. Spirito Base */}
-                <div>
-                  <div className="flex justify-between items-center mb-1">
-                    <label className="text-[10px] uppercase font-bold tracking-wider text-amber-400 font-syne">1. Spirito o Base</label>
-                    {selectedSpirit !== 'Tutti' && (
-                      <button onClick={() => setSelectedSpirit('Tutti')} className="text-[10px] text-slate-400 hover:text-white">Azzera</button>
-                    )}
-                  </div>
-                  <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-1 text-xs">
-                    {spiritList.map(s => (
-                      <button
-                        key={s}
-                        onClick={() => setSelectedSpirit(s)}
-                        className={`px-3 py-1.5 rounded-full whitespace-nowrap text-xs font-semibold transition active:scale-95 ${selectedSpirit === s ? 'bg-amber-500 text-black font-bold shadow-md shadow-amber-500/20' : 'bg-white/5 text-slate-300 border border-white/5 hover:bg-white/10'}`}
-                      >
-                        {s}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* 2. Profilo Gusto */}
-                <div>
-                  <div className="flex justify-between items-center mb-1">
-                    <label className="text-[10px] uppercase font-bold tracking-wider text-amber-400 font-syne">2. Gusto / Sapore</label>
-                    {selectedFlavor !== 'Tutti' && (
-                      <button onClick={() => setSelectedFlavor('Tutti')} className="text-[10px] text-slate-400 hover:text-white">Azzera</button>
-                    )}
-                  </div>
-                  <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-1 text-xs">
-                    {flavorList.map(f => (
-                      <button
-                        key={f}
-                        onClick={() => setSelectedFlavor(f)}
-                        className={`px-3 py-1.5 rounded-full whitespace-nowrap text-xs font-semibold transition active:scale-95 ${selectedFlavor === f ? 'bg-amber-500 text-black font-bold shadow-md shadow-amber-500/20' : 'bg-white/5 text-slate-300 border border-white/5 hover:bg-white/10'}`}
-                      >
-                        {f}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* 3. Gradazione */}
-                <div>
-                  <div className="flex justify-between items-center mb-1">
-                    <label className="text-[10px] uppercase font-bold tracking-wider text-amber-400 font-syne">3. Gradazione / Momento</label>
-                    {selectedStrength !== 'Tutti' && (
-                      <button onClick={() => setSelectedStrength('Tutti')} className="text-[10px] text-slate-400 hover:text-white">Azzera</button>
-                    )}
-                  </div>
-                  <div className="grid grid-cols-5 gap-1 text-[11px]">
-                    {strengthList.map(st => (
-                      <button
-                        key={st}
-                        onClick={() => setSelectedStrength(st)}
-                        className={`py-1.5 rounded-lg text-center font-semibold transition active:scale-95 ${selectedStrength === st ? 'bg-amber-500 text-black font-bold' : 'bg-white/5 text-slate-300 border border-white/5'}`}
-                      >
-                        {st}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Counter & Action */}
-                <div className="pt-2 border-t border-white/5 flex items-center justify-between">
-                  <span className="text-xs text-slate-400">Trovati: <b className="text-amber-400">{filteredCocktails.length}</b></span>
-                  <button
-                    onClick={() => handleRandomize(filteredCocktails)}
-                    disabled={filteredCocktails.length === 0}
-                    className="py-2.5 px-4 rounded-xl font-bold font-syne text-xs uppercase tracking-wider bg-gradient-to-r from-amber-500 to-amber-400 text-black border border-amber-200 gold-glow active:scale-95 shadow-lg disabled:opacity-40"
+                {/* CONTROLLI FILTRI CON SCORRIMENTO ORIZZONTALE VERSO DESTRA */}
+                <div className="space-y-2.5 shrink-0">
+                  
+                  {/* 1. Spirito Base */}
+                  <HorizontalScrollRow
+                    title="1. Distillato / Base"
+                    actionText={selectedSpirit !== 'Tutti' ? 'Azzera' : null}
+                    onAction={() => setSelectedSpirit('Tutti')}
                   >
-                    🎲 ESTRAI DA QUESTI ({filteredCocktails.length})
-                  </button>
+                    {spiritList.map(s => {
+                      const count = spiritCounts[s] || 0;
+                      const isSelected = selectedSpirit === s;
+                      return (
+                        <button
+                          key={s}
+                          onClick={() => setSelectedSpirit(isSelected ? 'Tutti' : s)}
+                          className={`px-3 py-1.5 rounded-full whitespace-nowrap text-xs font-semibold transition active:scale-95 shrink-0 flex items-center gap-1.5 ${isSelected ? 'bg-amber-500 text-black font-bold shadow-md shadow-amber-500/20' : 'bg-white/5 text-slate-300 border border-white/5 hover:bg-white/10'}`}
+                        >
+                          <span>{s}</span>
+                          <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${isSelected ? 'bg-black/20 text-black font-bold' : 'bg-white/10 text-slate-400'}`}>
+                            {count}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </HorizontalScrollRow>
+
+                  {/* 2. Profilo Gusto (20 Gusti diversi) */}
+                  <HorizontalScrollRow
+                    title="2. Gusto & Profilo Aromatico"
+                    badge={`${flavorList.length - 1} Gusti`}
+                    actionText={selectedFlavor !== 'Tutti' ? 'Azzera' : null}
+                    onAction={() => setSelectedFlavor('Tutti')}
+                  >
+                    {flavorList.map(f => {
+                      const count = flavorCounts[f] || 0;
+                      const isSelected = selectedFlavor === f;
+                      return (
+                        <button
+                          key={f}
+                          onClick={() => setSelectedFlavor(isSelected ? 'Tutti' : f)}
+                          className={`px-3 py-1.5 rounded-full whitespace-nowrap text-xs font-semibold transition active:scale-95 shrink-0 flex items-center gap-1.5 ${isSelected ? 'bg-amber-500 text-black font-bold shadow-md shadow-amber-500/20' : 'bg-white/5 text-slate-300 border border-white/5 hover:bg-white/10'}`}
+                        >
+                          <span>{f}</span>
+                          <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${isSelected ? 'bg-black/20 text-black font-bold' : 'bg-white/10 text-slate-400'}`}>
+                            {count}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </HorizontalScrollRow>
+
+                  {/* 3. Gradazione */}
+                  <div className="pt-0.5">
+                    <div className="flex justify-between items-center mb-1">
+                      <label className="text-[10px] uppercase font-bold tracking-wider text-amber-400 font-syne">3. Gradazione</label>
+                      {selectedStrength !== 'Tutti' && (
+                        <button onClick={() => setSelectedStrength('Tutti')} className="text-[10px] text-slate-400 hover:text-white">Azzera</button>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-5 gap-1 text-[11px]">
+                      {strengthList.map(st => (
+                        <button
+                          key={st}
+                          onClick={() => setSelectedStrength(selectedStrength === st ? 'Tutti' : st)}
+                          className={`py-1.5 rounded-lg text-center font-semibold transition active:scale-95 ${selectedStrength === st ? 'bg-amber-500 text-black font-bold' : 'bg-white/5 text-slate-300 border border-white/5'}`}
+                        >
+                          {st}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                 </div>
+
+                {/* RISULTATI IN TEMPO REALE SOTTO I FILTRI */}
+                <div className="pt-2 border-t border-white/10 flex-1 overflow-y-auto no-scrollbar space-y-2">
+                  <div className="flex items-center justify-between px-1">
+                    <span className="text-xs font-bold text-slate-300">
+                      Cocktail Trovati: <b className="text-amber-400">{filteredCocktails.length}</b>
+                    </span>
+                    {filteredCocktails.length > 0 && (
+                      <button
+                        onClick={() => handleRandomize(filteredCocktails)}
+                        className="py-1 px-3 rounded-lg font-bold font-syne text-[11px] uppercase tracking-wider bg-amber-500 text-black border border-amber-300 active:scale-95 shadow-md flex items-center gap-1"
+                      >
+                        <span>🎲</span>
+                        <span>Estrai a caso</span>
+                      </button>
+                    )}
+                  </div>
+
+                  {/* SE TROVATI: LISTA CARTE COCKTAIL */}
+                  {filteredCocktails.length > 0 ? (
+                    <div className="space-y-1.5">
+                      {filteredCocktails.map(item => (
+                        <div
+                          key={item.id}
+                          onClick={() => openCocktail(item)}
+                          className="p-2.5 rounded-2xl bg-black/40 hover:bg-amber-500/15 border border-white/5 hover:border-amber-500/30 flex items-center justify-between cursor-pointer transition active:scale-98"
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <div 
+                              className="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-black text-xs shrink-0"
+                              style={{ background: item.color || '#f59e0b' }}
+                            >
+                              🍸
+                            </div>
+                            <div>
+                              <div className="font-bold text-white text-xs font-syne flex items-center gap-1.5">
+                                <span>{item.name}</span>
+                                {item.badge && (
+                                  <span className="text-[8px] px-1.5 py-0.2 rounded bg-white/10 text-amber-300 font-sans">
+                                    {item.badge}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-[10px] text-slate-400 line-clamp-1">
+                                {item.baseSpirit} • {item.flavors.slice(0, 3).join(', ')}
+                              </div>
+                            </div>
+                          </div>
+                          <span className="text-amber-400 text-xs font-bold shrink-0">➔</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    /* SE 0 RISULTATI: SMART FALLBACK SENZA DEAD-END */
+                    <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 text-center space-y-3">
+                      <div className="text-2xl">🍸</div>
+                      <div>
+                        <h4 className="font-bold text-xs text-amber-300 font-syne">Nessun drink corrisponde a tutti i filtri insieme</h4>
+                        <p className="text-[11px] text-slate-400 mt-1">
+                          Prova a togliere uno dei filtri oppure scopri questi suggerimenti affini:
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => { setSelectedSpirit('Tutti'); setSelectedFlavor('Tutti'); setSelectedStrength('Tutti'); }}
+                        className="py-1.5 px-4 rounded-xl bg-amber-500 text-black font-bold text-xs uppercase active:scale-95"
+                      >
+                        🔄 Ripristina Tutti i Filtri
+                      </button>
+
+                      {fallbackSuggestions.length > 0 && (
+                        <div className="text-left pt-2 border-t border-amber-500/20">
+                          <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider block mb-1.5 font-syne">
+                            Suggeriti per te:
+                          </span>
+                          <div className="space-y-1">
+                            {fallbackSuggestions.map(sug => (
+                              <div
+                                key={sug.id}
+                                onClick={() => openCocktail(sug)}
+                                className="p-2 rounded-xl bg-black/40 hover:bg-amber-500/20 border border-white/5 flex items-center justify-between cursor-pointer"
+                              >
+                                <span className="text-xs font-semibold text-white">{sug.name}</span>
+                                <span className="text-[10px] text-amber-300 font-bold">{sug.baseSpirit} ➔</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
               </div>
             )}
 
             {/* 3. CATALOGO COMPLETO (CATALOG VIEW) */}
             {screen === 'catalog' && (
-              <div className="w-full glass-card rounded-3xl p-4 border border-white/10 shadow-2xl space-y-3 max-h-[75vh] flex flex-col">
-                <div className="flex items-center justify-between pb-2 border-b border-white/5">
+              <div className="w-full glass-card rounded-3xl p-4 border border-white/10 shadow-2xl space-y-3 max-h-[82vh] flex flex-col">
+                <div className="flex items-center justify-between pb-2 border-b border-white/5 shrink-0">
                   <h3 className="font-syne font-bold text-sm text-white flex items-center gap-1.5">
-                    <span>📖</span> Catalogo ({COCKTAILS_DATABASE.length})
+                    <span>📖</span> Catalogo ({COCKTAILS_DATABASE.length} Ricette)
                   </h3>
                   <button onClick={() => setScreen('advisor')} className="text-xs text-amber-400 font-bold hover:underline">
-                    Filtra
+                    Filtra per Gusto
                   </button>
                 </div>
 
-                <div className="overflow-y-auto no-scrollbar space-y-2 pr-1">
+                <div className="overflow-y-auto no-scrollbar space-y-2 pr-1 flex-1">
                   {COCKTAILS_DATABASE.map(item => (
                     <div
                       key={item.id}
@@ -1577,7 +1039,7 @@
                     >
                       <div className="flex items-center gap-3">
                         <div 
-                          className="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-black text-sm"
+                          className="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-black text-sm shrink-0"
                           style={{ background: item.color || '#f59e0b' }}
                         >
                           🍸
@@ -1592,11 +1054,11 @@
                             )}
                           </div>
                           <div className="text-[10px] text-slate-400">
-                            {item.baseSpirit} • {item.flavors.slice(0, 2).join(', ')} • {item.strength}
+                            {item.baseSpirit} • {item.flavors.slice(0, 3).join(', ')} • {item.strength}
                           </div>
                         </div>
                       </div>
-                      <span className="text-amber-400 text-xs font-bold">➔</span>
+                      <span className="text-amber-400 text-xs font-bold shrink-0">➔</span>
                     </div>
                   ))}
                 </div>
@@ -1619,20 +1081,38 @@
               </div>
             )}
 
-            {/* 5. SCHEDA DETTAGLIO COCKTAIL (DETAIL VIEW) */}
+            {/* 5. SCHEDA DETTAGLIO COCKTAIL (CON SWIPE ORIZZONTALE & FRECCE DESTRA/SINISTRA) */}
             {screen === 'detail' && !isShuffling && currentCocktail && (
-              <div className="w-full glass-card rounded-3xl p-4 sm:p-5 border border-amber-500/20 shadow-2xl relative space-y-3">
+              <div 
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+                className="w-full glass-card rounded-3xl p-4 sm:p-5 border border-amber-500/20 shadow-2xl relative space-y-3 max-h-[82vh] overflow-y-auto no-scrollbar select-none"
+              >
                 
-                {/* Header Scheda: Categoria & Azioni */}
-                <div className="flex items-center justify-between pb-1">
-                  <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                    {currentCocktail.category}
-                  </span>
+                {/* BARRA SUPERIORE DI NAVIGAZIONE TRA DRINK (SCORRIMENTO DESTRA / SINISTRA) */}
+                <div className="flex items-center justify-between pb-1 border-b border-white/10">
+                  <button
+                    onClick={goToPrevCocktail}
+                    className="flex items-center gap-1 text-[11px] font-bold text-slate-300 hover:text-amber-400 bg-white/5 hover:bg-white/10 px-2 py-1 rounded-lg border border-white/10 active:scale-95 transition"
+                    title="Cocktail Precedente (o scorri verso destra)"
+                  >
+                    ‹ Prec
+                  </button>
+
+                  <div className="text-center">
+                    <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                      {currentCocktail.category}
+                    </span>
+                    <div className="text-[8px] text-slate-400 mt-0.5">
+                      {currentIndex >= 0 ? `${currentIndex + 1} di ${currentList.length} (Scorri ➔)` : 'Cocktail'}
+                    </div>
+                  </div>
                   
                   <div className="flex items-center gap-1.5">
                     <button
                       onClick={() => toggleFav(currentCocktail)}
-                      className={`p-2 rounded-full border transition active:scale-90 ${isFav ? 'bg-rose-500/20 border-rose-500 text-rose-400' : 'bg-white/5 border-white/10 text-slate-300'}`}
+                      className={`p-1.5 rounded-full border transition active:scale-90 text-xs ${isFav ? 'bg-rose-500/20 border-rose-500 text-rose-400' : 'bg-white/5 border-white/10 text-slate-300'}`}
                       title="Salva nei Preferiti"
                     >
                       {isFav ? '❤️' : '🤍'}
@@ -1640,20 +1120,28 @@
 
                     <button
                       onClick={() => handleShare(currentCocktail)}
-                      className="p-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 active:scale-90 transition"
+                      className="p-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 active:scale-90 transition text-xs"
                       title="Condividi Ricetta"
                     >
                       {copied ? '✓' : '🔗'}
+                    </button>
+
+                    <button
+                      onClick={goToNextCocktail}
+                      className="flex items-center gap-1 text-[11px] font-bold text-amber-300 hover:text-amber-200 bg-amber-500/15 hover:bg-amber-500/25 px-2 py-1 rounded-lg border border-amber-500/30 active:scale-95 transition"
+                      title="Cocktail Successivo (o scorri verso sinistra)"
+                    >
+                      Succ ›
                     </button>
                   </div>
                 </div>
 
                 {/* Titolo e Descrizione */}
-                <div className="text-center">
+                <div className="text-center pt-0.5">
                   <h2 className="text-2xl sm:text-3xl font-extrabold font-syne tracking-tight text-white mb-0.5">
                     {currentCocktail.name}
                   </h2>
-                  <p className="text-xs text-slate-300 leading-relaxed italic">
+                  <p className="text-xs text-slate-300 leading-relaxed italic max-w-sm mx-auto">
                     "{currentCocktail.description}"
                   </p>
                 </div>
@@ -1674,7 +1162,7 @@
                 </div>
 
                 {/* Selettore Dosi / Bicchieri */}
-                <div className="flex items-center justify-between bg-black/30 px-3 py-1.5 rounded-xl border border-white/5 text-xs">
+                <div className="flex items-center justify-between bg-black/40 px-3 py-1.5 rounded-xl border border-white/5 text-xs">
                   <span className="text-[11px] text-slate-400 font-medium">Numero di Bicchieri:</span>
                   <div className="flex items-center gap-1.5">
                     {[1, 2, 4].map(num => (
@@ -1690,7 +1178,7 @@
                 </div>
 
                 {/* Tabs di navigazione della Scheda */}
-                <div className="grid grid-cols-3 gap-1 bg-black/40 p-1 rounded-xl border border-white/10 text-xs">
+                <div className="grid grid-cols-3 gap-1 bg-black/50 p-1 rounded-xl border border-white/10 text-xs">
                   {[
                     { id: 'recipe', label: '📋 Ricetta' },
                     { id: 'tips', label: '⭐ Barman' },
@@ -1773,6 +1261,25 @@
                   </div>
                 )}
 
+                {/* CAROSELLO SCORREVOLE ORIZZONTALE IN BASSO: ALTRI COCKTAIL SUGGERITI */}
+                <div className="pt-2 border-t border-white/10">
+                  <HorizontalScrollRow
+                    title="🍹 Altri Drink Simili"
+                    subtitle="Scorri verso destra per sfogliare altri cocktail correlati ➔"
+                  >
+                    {currentList.filter(c => c.id !== currentCocktail.id).slice(0, 10).map(item => (
+                      <div
+                        key={item.id}
+                        onClick={() => openCocktail(item)}
+                        className="shrink-0 w-32 p-2 rounded-xl bg-black/40 hover:bg-amber-500/15 border border-white/10 hover:border-amber-500/30 cursor-pointer active:scale-95 text-xs transition"
+                      >
+                        <div className="font-bold text-white line-clamp-1">{item.name}</div>
+                        <div className="text-[9px] text-amber-300 mt-0.5">{item.baseSpirit}</div>
+                      </div>
+                    ))}
+                  </HorizontalScrollRow>
+                </div>
+
               </div>
             )}
 
@@ -1781,12 +1288,12 @@
           {/* ================================================================= */}
           {/* 🔘 FOOTER BUTTONS                                                 */}
           {/* ================================================================= */}
-          <footer className="pt-3 space-y-2">
+          <footer className="pt-2.5 space-y-2 shrink-0">
             {screen === 'detail' && !isShuffling && (
               <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={() => handleRandomize(filteredCocktails)}
-                  className="py-3 px-3 rounded-2xl font-bold font-syne text-xs uppercase tracking-wider bg-white/10 hover:bg-white/15 text-white border border-white/10 active:scale-95 transition flex items-center justify-center gap-1.5"
+                  className="py-2.5 px-3 rounded-2xl font-bold font-syne text-xs uppercase tracking-wider bg-white/10 hover:bg-white/15 text-white border border-white/10 active:scale-95 transition flex items-center justify-center gap-1.5"
                 >
                   <span>🔄</span>
                   <span>Altro con questi filtri</span>
@@ -1794,7 +1301,7 @@
 
                 <button
                   onClick={() => handleRandomize(COCKTAILS_DATABASE)}
-                  className="py-3 px-3 rounded-2xl font-bold font-syne text-xs uppercase tracking-wider bg-gradient-to-r from-amber-500 to-amber-600 text-black border border-amber-300 gold-glow active:scale-95 transition flex items-center justify-center gap-1.5 shadow-xl"
+                  className="py-2.5 px-3 rounded-2xl font-bold font-syne text-xs uppercase tracking-wider bg-gradient-to-r from-amber-500 to-amber-600 text-black border border-amber-300 gold-glow active:scale-95 transition flex items-center justify-center gap-1.5 shadow-xl"
                 >
                   <span>🎲</span>
                   <span>A Sorpresa</span>
@@ -1806,7 +1313,7 @@
               <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={() => handleRandomize(COCKTAILS_DATABASE)}
-                  className="py-3 px-3 rounded-2xl font-bold font-syne text-xs uppercase tracking-wider bg-white/10 text-white border border-white/10 active:scale-95 flex items-center justify-center gap-1.5"
+                  className="py-2.5 px-3 rounded-2xl font-bold font-syne text-xs uppercase tracking-wider bg-white/10 text-white border border-white/10 active:scale-95 flex items-center justify-center gap-1.5"
                 >
                   <span>🎲</span>
                   <span>A Sorpresa</span>
@@ -1814,7 +1321,7 @@
 
                 <button
                   onClick={() => setScreen('catalog')}
-                  className="py-3 px-3 rounded-2xl font-bold font-syne text-xs uppercase tracking-wider bg-white/10 text-white border border-white/10 active:scale-95 flex items-center justify-center gap-1.5"
+                  className="py-2.5 px-3 rounded-2xl font-bold font-syne text-xs uppercase tracking-wider bg-white/10 text-white border border-white/10 active:scale-95 flex items-center justify-center gap-1.5"
                 >
                   <span>📖</span>
                   <span>Tutto il Catalogo</span>
