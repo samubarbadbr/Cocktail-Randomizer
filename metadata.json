@@ -1,6 +1,6 @@
 {
-  "name": "Cocktail Randomizer",
-  "description": "Mobile-first cocktail generator per serate tra amici - scopri cosa bere stasera!",
+  "name": "Cocktail Advisor & Generator",
+  "description": "App di consigli personalizzati sui cocktail basata su ingredienti, gusto, momenti e suggerimenti del barman.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
