@@ -355,12 +355,12 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen max-w-md w-full mx-auto relative flex flex-col justify-between bg-[#070913] text-slate-100 px-3.5 pt-3 pb-28">
+    <div className="min-h-screen max-w-md w-full mx-auto relative flex flex-col justify-between bg-[#070913] text-slate-100 px-3.5 pt-[env(safe-area-inset-top,20px)] pb-[calc(env(safe-area-inset-bottom,16px)+80px)]">
       
       {/* ================================================================= */}
       {/* 🎩 1. HEADER ALCHEMIS CLEAN & MINIMAL                             */}
       {/* ================================================================= */}
-      <header className="sticky top-0 z-30 mb-3 flex items-center justify-between w-full p-2.5 sm:p-3 bg-slate-900/80 backdrop-blur-md rounded-2xl border border-white/10 overflow-hidden shadow-lg gap-2">
+      <header className="sticky top-[env(safe-area-inset-top,0px)] z-30 mb-3 flex items-center justify-between w-full p-2.5 sm:p-3 bg-slate-900/85 backdrop-blur-md rounded-2xl border border-white/10 overflow-hidden shadow-lg gap-2 mt-1">
         
         {/* SINISTRA: Logo Alchemis + Titolo */}
         <div 
@@ -831,7 +831,7 @@ export default function App() {
       {/* ================================================================= */}
       {/* 📱 2. BOTTOM NAVIGATION BAR SIMMETRICA A 3 ELEMENTI               */}
       {/* ================================================================= */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto backdrop-blur-xl bg-slate-950/92 border-t border-white/10 px-4 py-1.5 flex items-center justify-between shadow-2xl">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto backdrop-blur-xl bg-slate-950/95 border-t border-white/10 px-4 pt-1.5 pb-[env(safe-area-inset-bottom,16px)] flex items-center justify-between shadow-2xl">
         
         {/* 1. FILTRI (SINISTRA) */}
         <button
@@ -905,7 +905,7 @@ export default function App() {
       {selectedCocktail && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-end justify-center p-0">
           <div 
-            className="w-full max-w-md max-h-[90vh] overflow-y-auto glass-sheet rounded-t-3xl p-5 space-y-4 shadow-2xl border-t border-white/15 pb-10"
+            className="w-full max-w-md max-h-[90vh] overflow-y-auto glass-sheet rounded-t-3xl p-5 space-y-4 shadow-2xl border-t border-white/15 pb-[calc(env(safe-area-inset-bottom,16px)+24px)]"
             onClick={(e) => e.stopPropagation()}
           >
             
