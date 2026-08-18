@@ -1,6 +1,0 @@
-{
-  "name": "Alchemis",
-  "description": "Alchemis - Esperienza mobile di mixology con ricette, filtri per distillato e gusto, generatore casuale e segreti del barman.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}

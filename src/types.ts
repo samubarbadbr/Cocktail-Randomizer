@@ -1,22 +1,35 @@
-export interface Ingredient {
+export interface IngredientItem {
   name: string;
-  amount: string;
-  note?: string;
+  amount: number | string;
+  unit?: string;
 }
 
-export interface Cocktail {
+export type Ingredient = IngredientItem;
+
+export interface CocktailItem {
   id: string;
   name: string;
-  category: 'Modern Classic' | 'Classico' | 'Tiki' | 'Aperitivo' | 'Pre-Dinner' | 'After-Dinner' | 'Mocktail';
+  category: string;
+  baseSpirit?: string;
+  flavor?: string[];
+  flavors?: string[];
+  strength?: string;
+  abv?: string;
+  glass: string;
+  color?: string;
+  colorAccent?: string;
+  badge?: string;
   description: string;
-  flavor: string[]; // e.g. ["Amaro", "Agrumato", "Erbaceo"]
-  ingredients: Ingredient[];
-  story: string;
-  glass: 'Coupe' | 'Old Fashioned' | 'Highball' | 'Nick & Nora' | 'Martini' | 'Copper Mug' | 'Hurricane' | 'Tiki Mug' | 'Flute';
-  garnish: string;
-  abv: 'Leggero' | 'Medio' | 'Elevato' | 'Molto Elevato' | 'Analcolico';
-  difficulty: 'Facile' | 'Medio' | 'Da Bartender';
-  colorAccent?: 'amber' | 'emerald' | 'purple' | 'rose' | 'cyan' | 'orange' | 'red';
+  ingredients: IngredientItem[];
+  recipe?: string[];
+  tips?: string;
+  story?: string;
+  garnish?: string;
+  difficulty?: string;
 }
+
+export type Cocktail = CocktailItem;
+
+export type NavTab = 'filter' | 'catalog' | 'favorites';
 
 export type FilterCategory = 'all' | 'amaro' | 'agrumato' | 'dolce' | 'secco' | 'forte' | 'mocktail' | 'favorites';
